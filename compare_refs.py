@@ -13,7 +13,7 @@ Usage: python compare_refs.py --data DATA_DIR --before DATA_DIR/records_before_m
 import argparse
 import json
 import re
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 import numpy as np
@@ -49,6 +49,8 @@ def main():
     ap.add_argument("--data", required=True)
     ap.add_argument("--before", required=True)
     ap.add_argument("--k", type=int, default=5)
+    ap.add_argument("--hub-max", type=int, default=0,
+                    help="hide reference objects in the top 5 of >= this many VMZ photos (as suggest_vmz.py; 0 = off)")
     a = ap.parse_args()
     data = Path(a.data)
     recs = [json.loads(l) for l in open(data / "records.jsonl", encoding="utf-8")]
@@ -70,14 +72,21 @@ def main():
 
     res = {k: defaultdict(list) for k in refs}
     for name, ref in refs.items():
+        cand = {}
         for i in q_idx:
-            ranks = []
+            cand[i] = {}
             for m in E:
                 s = E[m][ref] @ E[m][i]
-                order = [o for o in np.argsort(-s)[:80] if s[o] < 0.995][:60]
-                ranks.append([ref[o] for o in order])
-                if m == "siglip2":
-                    top1 = float(s[order[0]])
+                order = [o for o in np.argsort(-s)[:200] if s[o] < 0.995]
+                cand[i][m] = ([ref[o] for o in order], {ref[o]: float(s[o]) for o in order})
+        hubs = set()
+        if a.hub_max:
+            freq = Counter(j for i in q_idx for j in rrf([cand[i][m][0][:60] for m in E])[:5])
+            hubs = {j for j, c in freq.items() if c >= a.hub_max}
+        print(f"{name}: {len(hubs)} hubs hidden")
+        for i in q_idx:
+            ranks = [[j for j in cand[i][m][0] if j not in hubs][:60] for m in E]
+            top1 = cand[i]["siglip2"][1][ranks[list(E).index("siglip2")][0]]
             top = rrf(ranks)[:a.k]
             names = [recs[j]["name"] for j in top]
             r = recs[i]

@@ -10,6 +10,7 @@ import argparse
 import html
 import json
 import re
+from collections import Counter
 from pathlib import Path
 
 from PIL import Image
@@ -47,9 +48,14 @@ def notes(o, res):
     inv = o["inv"]
     if inv == "00273":
         ww = [x for x in nn if "winnowing" in x["name"].lower()]
-        return (f"Unter den 12 ähnlichsten Objekten sind {sum(x['count'] for x in ww)} Worfeln "
-                f"({quoted(x['name'] for x in ww)}). Das Bild-Text-Modell kennt das seltene Wort «Worfel» nicht "
-                f"(Rang {rank(o, 'Worfel')}), die ähnlichen Objekte liefern den Begriff trotzdem.")
+        n_ww = sum(x["count"] for x in ww)
+        rest = [x["name"].split(" | ")[0] for x in nn if "winnowing" not in x["name"].lower()]
+        rest = list(dict.fromkeys(rest))[:3]
+        worf = (f"ist eine Worfel ({quoted(x['name'] for x in ww)})" if n_ww == 1 else
+                f"sind {n_ww} Worfeln ({quoted(x['name'] for x in ww)})")
+        return (f"Unter den 12 ähnlichsten Objekten {worf}, die übrigen heissen {quoted(rest)}. Das Bild-Text-Modell "
+                f"kennt das seltene Wort «Worfel» nicht (Rang {rank(o, 'Worfel')}) – den Begriff liefert nur der "
+                f"Vergleich mit anderen Sammlungen.")
     if inv == "00145ad":
         gw = sum(x["count"] for x in nn if "goldgewicht" in x["name"].lower())
         return (f"{'Alle 12' if gw == 12 else f'{gw} der 12'} ähnlichsten Objekte sind Goldgewichte aus dem "
@@ -62,9 +68,9 @@ def notes(o, res):
         first = nb[0]
         lead = (f"das ähnlichste Objekt ist eine «{first['name']}» ({first['holder'].replace('The ', '')})"
                 if "harpoon" in first["name"].lower() else "unter den ähnlichsten Objekten ist eine Harpune")
-        n_arrow = sum("arrow" in n for n in names5)
-        arrows = "" if not n_arrow else " und ein Pfeil" if n_arrow == 1 else f" und {n_arrow} Pfeile"
-        return f"«Harpune» steht auf Rang {rank(o, 'Harpune')} von {v}; {lead}, dazu Speere, eine Lanze{arrows}."
+        others = Counter(re.sub(r"^[A-Z]\d+/?\d*\s+", "", n["name"]) for n in nb[1:])
+        rest = ", ".join(f"{c}× «{k}»" if c > 1 else f"«{k}»" for k, c in others.most_common())
+        return f"«Harpune» steht auf Rang {rank(o, 'Harpune')} von {v}; {lead}, dazu {rest}."
     if inv == "24472":
         suz = next((n for n in nb if "suzani" in n["name"].lower()), None)
         nat = " und ".join("«" + m["term"] + "»" for m in o["native_matches"][:2])
@@ -73,9 +79,12 @@ def notes(o, res):
                 + f" Der einheimische Name «susani» kommt im VMZ-Katalog bei weiteren Objekten vor – dort als {nat}.")
     if inv == "o.Nr.5388":
         arm = [t for t in o["en_terms"] if re.search(r"bracelet|bangle|wristlet|armlet|anklet", t)]
+        ring = sum(x["count"] for x in nn if re.search(r"armring|armreif|bracelet|bangle", x["name"].lower()))
         return (f"«Ornament» nur Rang {rank(o, 'Ornament')} von {v}. Der Bild-Text-Abgleich nennt Armmanchette, "
                 f"Armstulpe und Papuaarmband (VMZ-Begriffe)" + (f" sowie {quoted(arm)}" if arm else "")
-                + "; die ähnlichsten Objekte sind dagegen Bambusbehälter. Armschmuck prüfen.")
+                + (f"; unter den 12 ähnlichsten Objekten sind {ring}× «Armring» (Ethnologisches Museum Berlin), "
+                   f"daneben Bambusbehälter und Mörser" if ring else
+                   "; die ähnlichsten Objekte sind dagegen Bambusbehälter") + ". Armschmuck prüfen.")
     if inv == "08413.002":
         fin = sum("finial" in n["name"].lower() for n in o["neighbours"][:8])
         return (f"«Gefäss» nur Rang {rank(o, 'Gefäss')} von {v}. Der Bild-Text-Abgleich nennt Vogelkopf und Tierkopf"
@@ -149,7 +158,7 @@ def main():
         f'<section class="grp"><h3>{esc(t)}</h3><p class="gl">{esc(d)}</p>{"".join(card(objs[s]) for s in sigs)}</section>'
         for t, d, sigs in GROUPS)
     refmix = {"phil": "Mapping Philippine Material Culture", "mrz": "Museum Rietberg",
-              "cma": "Cleveland Museum of Art", "si": "Smithsonian"}
+              "cma": "Cleveland Museum of Art", "si": "Smithsonian", "md": "museum-digital (Berlin, Bremen)"}
     sources = ", ".join(f"{refmix.get(k, k)} ({v})" for k, v in sorted(res["ref"].items(), key=lambda kv: -kv[1]))
     page = f"""<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -227,18 +236,18 @@ Erste Resultate, Stand 13. November 2026.</p>
 <li><b>«Gestützt» ist ein starkes Indiz</b> (zufällig nur 2 %), <b>«nicht gestützt» nur ein schwaches</b>: Auch sichere Begriffe aus den aktuellen Namen sind nur bei {st.get('type_sup', 0) / tn:.0%} gestützt, besonders seltene Fachwörter fallen durch.</li>
 <li><b>Deutsche Fachbegriffe müssen übersetzt werden.</b> Mit Übersetzung landet der richtige Typbegriff im Mittel auf Rang {st.get('type_ranks') or '–'} statt 809 (von {res['vocab']}). Seltene Wörter wie «Worfel» kennt aber auch die Übersetzung nicht.</li>
 <li><b>Anführungszeichen markieren meist Bildtitel</b> («Bild: „Abendmahl“»). Dort trägt die Methode nur Technikbegriffe bei (Malerei auf Reispapier, Blockdruck).</li>
-<li><b>Mehr Vergleichsobjekte heisst nicht automatisch bessere Namen.</b> Mit 12317 zusätzlichen CC0-Objekten aus Cleveland und Smithsonian ({esc(sources)}) sind die ähnlichsten Objekte deutlich näher (mittlere Ähnlichkeit 0.813 → 0.828; Asien 0.781 → 0.805, Amerika 0.823 → 0.850) und einzelne Beispiele viel besser (Suzani, Stabaufsätze, Harpune). Die Namen der Nachbarn bestätigen den Typbegriff aber kaum häufiger (15 % → 16 %): Kunstmuseen benennen mit Titeln statt Objekttypen. Am meisten bringen dürften ethnografische Sammlungen mit Typbezeichnungen.</li>
+<li><b>Ethnografische Sammlungen mit deutschen Typbezeichnungen bringen am meisten.</b> Vergleichsbestand: {esc(sources)}. 12317 zusätzliche CC0-Objekte aus Cleveland und Smithsonian machen die ähnlichsten Objekte deutlich näher (Asien 0.781 → 0.805, Amerika 0.823 → 0.850), die Namen der Nachbarn bestätigen den Typbegriff aber kaum häufiger (14 % → 16 %): Kunstmuseen benennen mit Titeln statt Objekttypen. Nur 3171 Objekte via museum-digital (Ethnologisches Museum Berlin, Übersee-Museum Bremen, Museum Europäischer Kulturen) heben die Bestätigung dagegen auf 20 % («?»-Hypothesen 8 % → 11 % → 14 %).</li>
 </ul>
 
 <h2>Wie weiter</h2>
 <ul class="learn">
 <li>Fachpersonen prüfen die Vorschläge in der <a href="review/">Gesamtliste</a> (Filter nach «?» / Anführungszeichen und nach Hypothesen-Status).</li>
-<li>Vergleichsbestand ausbauen – am meisten bringen Exporte verwandter Sammlungen (MKB Basel, Museum Rietberg, Pitt Rivers Museum).</li>
+<li>Vergleichsbestand gezielt um ethnografische Sammlungen mit Typbezeichnungen ausbauen: mehr aus museum-digital (das Ethnologische Museum Berlin hat dort rund 77000 Objekte), Exporte von MKB Basel, Museum Rietberg, Pitt Rivers Museum.</li>
 <li>Text einbeziehen: Eingangsbuch-Einträge und einheimische Namen sind oft der stärkste Einzelhinweis.</li>
 </ul>
 
 <footer><p>Vorschläge sind Hinweise, keine Entscheidungen – entscheiden muss die Fachperson. Vergleichsbestände enthalten auch veraltete oder koloniale Bezeichnungen.</p>
-<p>Fotos der VMZ-Objekte: © Völkerkundemuseum der Universität Zürich. Vergleichsbilder als Miniaturen mit Link zur Quelle: Cleveland Museum of Art und Smithsonian (CC0), Museum Rietberg (CC BY-SA), Mapping Philippine Material Culture (© die besitzenden Museen). Code: <a href="{REPO}">{REPO.replace('https://', '')}</a>.</p></footer>
+<p>Fotos der VMZ-Objekte: © Völkerkundemuseum der Universität Zürich. Vergleichsbilder als Miniaturen mit Link zur Quelle: Cleveland Museum of Art und Smithsonian (CC0), Museum Rietberg (CC BY-SA), via museum-digital: Ethnologisches Museum, Staatliche Museen zu Berlin (CC BY-NC-SA) und Übersee-Museum Bremen (CC BY-SA), Mapping Philippine Material Culture (© die besitzenden Museen). Code: <a href="{REPO}">{REPO.replace('https://', '')}</a>.</p></footer>
 </main></body></html>"""
     (out / "index.html").write_text(page, encoding="utf-8")
     print("wrote", out / "index.html", "with", sum(len(s) for _, _, s in GROUPS), "examples")

@@ -204,7 +204,46 @@ Median similarity of the nearest neighbour by region: Asia 0.781 → 0.805 (n = 
   Rietberg, Pitt Rivers, or German-language collections on museum-digital), more than further
   art-museum data.
 
-The published pages (`docs/`) use the extended set and the hub filter.
+The published pages (`docs/`) use the extended set and the hub filter (see the museum-digital section below for the
+current numbers).
+
+## German type names from museum-digital (13.11.2026, evening)
+
+`harvest_md.py` uses the open JSON API of museum-digital (robots.txt allows `/json/`). It searches the
+**300 most frequent type terms of the whole VMZ catalogue**, not the terms of the 748 sample objects, and
+keeps at most 12 objects per term and institution:
+
+| Institution | Objects | Licence of the images |
+|---|---|---|
+| Ethnologisches Museum, Staatliche Museen zu Berlin | 1,557 | CC BY-NC-SA |
+| Übersee-Museum Bremen (German names via `nat.museum-digital.de`) | 665 | CC BY-SA |
+| Museum Europäischer Kulturen, Staatliche Museen zu Berlin | 949 | CC BY-NC-SA |
+
+The licences were checked on samples of 6–12 objects per institution. The Ethnologisches Museum has about
+77,000 objects on museum-digital, so this is only a small, targeted extract.
+
+Effect on the 748 VMZ objects (top-5 neighbours, hub filter as on the published pages):
+
+| | original (3,163) | + Cleveland/Smithsonian (15,480) | + museum-digital (18,651) |
+|---|---|---|---|
+| type term of the current name among the neighbour names (n = 447) | 14 % | 16 % | **20 %** |
+| «?» hypothesis among the neighbour names (n = 475) | 8 % | 11 % | **14 %** |
+| nearest neighbour ≥ 0.85 | 21 % | 32 % | 38 % |
+
+- **What the gain shows:** 3,171 objects with German type names do more for the names than 12,317
+  art-museum objects. Examples:
+  - «Ornament ?» gets 3× «Armring» as neighbours;
+  - «Speerspitze / Harpune?» gets «Pfeil» and «Speer» next to the British Museum «Harpoon»;
+  - baskets get «Korbschale» and «Tablett».
+- **Caveats:**
+  - The search terms come from the VMZ catalogue, so the extract leans towards object types the VMZ
+    has.
+  - German names can be matched directly, while English names only match via the MT head noun.
+- **Not every example improves.** For «Korb (Worfel?)» more ordinary baskets push the British Museum
+  winnowing trays down: 1 instead of 3 among the 12 nearest.
+- **The «Schnabelgeiss» (09947)** gets no comparable European custom figures. museum-digital has nothing
+  under Schnabelgeiß, Habergeiß or Klapperbock. The closest functional match remains a Bamana
+  hobbyhorse head (Cleveland).
 
 ## Run
 
@@ -219,6 +258,7 @@ GPU_SHARE=0.5 venv/bin/python suggest.py --data data --html uzh_review.html
 venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_.xlsx \
   --pdf VMZ_objects-with-questionmark.pdf --pdf VMZ_objects-with-quotation-marks.pdf --out data   # ~30 s
 venv/bin/python harvest_more.py --out data      # more reference objects: Cleveland departments, Smithsonian (CC0)
+venv/bin/python harvest_md.py --out data        # German type names: museum-digital (EM Berlin, Übersee-Museum, MEK)
 GPU_SHARE=0.5 venv/bin/python embed.py --data data --queries queries                            # incremental
 GPU_SHARE=0.5 venv/bin/python suggest_vmz.py --data data --public --out docs/review   # ~40 s (+ opus-mt-de-en on the first run)
 venv/bin/python make_overview.py --data data --results docs/review/vmz_results.json --out docs
@@ -241,6 +281,7 @@ CPU threads). It's quieter and takes about twice as long. `embed.py` only comput
 - `suggest_vmz.py` – suggestions for the VMZ objects: neighbours, VMZ vocabulary (via MT), hypothesis
   ranks, native names; writes the review page, Excel and JSON.
 - `harvest_more.py` – more reference objects (Cleveland departments, Smithsonian Freer|Sackler, NMAfA, NMAI; CC0).
+- `harvest_md.py` – reference objects with German type names from museum-digital (open JSON API).
 - `compare_refs.py` – compares two reference sets on the VMZ objects (coverage and name confirmation).
 - `make_overview.py` – the overview page for the challenge owners (`docs/index.html`).
 

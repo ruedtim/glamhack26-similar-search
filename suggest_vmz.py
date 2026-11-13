@@ -35,8 +35,10 @@ SEP = r"[();:,/\[\]]| oder | mit | für | aus | von | und | - "
 EN_TEMPLATE = "a photo of a {}, an ethnographic museum object"
 SUP_SHARE, POS_SHARE = 0.02, 0.10     # rank thresholds: top 2 % = supported, top 10 % = possible
 RIGHTS_PUBLIC = ("Fotos der VMZ-Objekte: © Völkerkundemuseum der Universität Zürich. Vergleichsbilder: Cleveland "
-                 "Museum of Art und Smithsonian (CC0), Museum Rietberg (CC BY-SA), Mapping Philippine Material "
-                 "Culture (© die besitzenden Museen) – Miniaturen nur zum Vergleich, mit Link zur Quelle.")
+                 "Museum of Art und Smithsonian (CC0), Museum Rietberg (CC BY-SA), via museum-digital: "
+                 "Ethnologisches Museum, Staatliche Museen zu Berlin (CC BY-NC-SA) und Übersee-Museum Bremen "
+                 "(CC BY-SA), Mapping Philippine Material Culture (© die besitzenden Museen) – Miniaturen nur zum "
+                 "Vergleich, mit Link zur Quelle.")
 MT_MODEL = "Helsinki-NLP/opus-mt-de-en"
 MT_FRAME = "Ethnografische Sammlung: Maske, Trommel, {}"   # context makes single-word MT much better
 
@@ -198,7 +200,7 @@ def main():
         groups, shown = Counter(), {}
         for j in top:
             nm = recs[j]["name"]
-            key = (clean_de(nm).lower() if recs[j]["source"] == "mrz" else clean(nm)) or nm.lower()
+            key = (clean_de(nm).lower() if recs[j]["source"] in ("mrz", "md") else clean(nm)) or nm.lower()
             groups[key] += 1
             shown.setdefault(key, nm)
         knn_names = [(shown[k], c) for k, c in groups.most_common(6)]
@@ -351,7 +353,7 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
 </div></div></section>""")
 
     tn, hn = max(1, stats["type_n"]), max(1, stats["hyp_n"])
-    refmix = ", ".join(f"{ {'phil': 'Mapping Philippine Material Culture', 'mrz': 'Museum Rietberg', 'cma': 'Cleveland Museum of Art', 'si': 'Smithsonian'}.get(k, k)}: {v}"
+    refmix = ", ".join(f"{ {'phil': 'Mapping Philippine Material Culture', 'mrz': 'Museum Rietberg', 'cma': 'Cleveland Museum of Art', 'si': 'Smithsonian', 'md': 'museum-digital'}.get(k, k)}: {v}"
                        for k, v in Counter(src[ref]).items())
     page = f"""<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>VMZ Namensvorschläge</title>
