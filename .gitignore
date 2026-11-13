@@ -1,0 +1,14 @@
+# raw challenge data from the Völkerkundemuseum – not published (for now)
+VMZ_Sammlungsobjekte_*.xlsx
+VMZ_objects-with-*.pdf
+
+# local data, caches and environments (rebuilt with harvest*.py / ingest_vmz.py / embed.py)
+data/
+venv/
+__pycache__/
+queries/*.npy
+queries/ids.json
+.DS_Store
+
+# internal review page (contains accession register excerpts) – the public variant is docs/review/
+vmz_review/
