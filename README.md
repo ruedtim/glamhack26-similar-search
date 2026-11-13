@@ -245,6 +245,64 @@ Effect on the 748 VMZ objects (top-5 neighbours, hub filter as on the published 
   under Schnabelgeiß, Habergeiß or Klapperbock. The closest functional match remains a Bamana
   hobbyhorse head (Cleveland).
 
+## Second search layer, more catalogue data, MKB and PRM (13.11.2026, late)
+
+**Models: SigLIP 2 leads, DINOv2 only as a minor voice.** Measured on the 748 VMZ objects (top-5 neighbour
+names, hub filter, 18,651 reference objects):
+
+| Neighbour search | type term confirmed | «?» hypothesis confirmed |
+|---|---|---|
+| SigLIP 2 only | 22.1 % | 16.2 % |
+| DINOv2 only | 14.1 % | 9.3 % |
+| rank fusion 1 : 1 (before) | 20.4 % | 14.1 % |
+| **weighted fusion, DINOv2 × 0.25 (now)** | **22.6 %** | **16.0 %** |
+
+DINOv2 judges shape and texture only. SigLIP 2 was trained on image–text pairs and so finds objects «of
+the same kind», which is what naming needs. A third model is less promising than a larger SigLIP 2 variant
+(not tested yet).
+
+**Geographic layer (`geo.py`).**
+- Country, world region and continent come from the VMZ catalogue (world region and ISO code).
+- For the reference objects they come from their culture, name and description texts. The lookup tables
+  are built from the VMZ catalogue itself: country names (German/English), region and place names, and
+  ethnic groups → country/world region. Only the English demonyms («Japanese», «South Asians») are
+  hand-made.
+- Located share: Philippines database 100 %, Cleveland 97 %, Rietberg 87 %, Smithsonian 83 %.
+  museum-digital has places only in the object records; `enrich_md_places.py` fetches them into a cache,
+  which was still incomplete at the time of the run.
+- The list shows a second row per object: «Ähnlich und aus derselben Region» (the visually most similar
+  objects among 200 per model, same world region or country).
+- Result: 446 objects have ≥ 5 regional neighbours. Their names confirm the type term less often than the
+  purely visual neighbours: 18 % vs 24 % (n = 280); «?» hypotheses 8 % vs 16 % (n = 223).
+- So the layer is an additional view (comparison pieces from the same cultural context), not a better
+  source of names.
+
+**More catalogue fields on the public list.**
+- Shown in a fold-out block per object: dimensions, acquisition type and year, original number,
+  exhibitions, literature, documentation, maker, continent/world region/place/country, religion, language,
+  attribution note, number of units.
+- The description is shown only for acquisitions before 1980. Sentences about persons, purchase/gift,
+  collections, values or years from 1980 on are removed automatically («[gekürzt]»).
+- Not published: collector, provenance, accession register and internal check notes.
+- `ingest_vmz.py --catalog-only` rewrites the catalogue with all columns.
+
+**Museum der Kulturen Basel.**
+- All 172 MKB objects in the Philippines database are in the reference set (`harvest_mkb.py`).
+- The MKB «Sammlung Europa» on data.bs.ch has 73,733 records (CC BY 4.0) but no images. It is used as a
+  **text layer**: same designation in the MKB (short name, title, origin, inventory number; no supplier
+  names). 263 VMZ objects get matches.
+  - Example «„Schnabelgeiss“, mit Traggestell» (09947): three MKB Schnabelgeiss objects, among them
+    «Schnabelgeiss für Neujahrsumzug» (Poland). This supports the VMZ use «[Kostüm für Altjahr/Silvester?]».
+  - Another one is **«SVZ 9299», a mask from Ottenbach (ZH)**. The VMZ catalogue lists 09299
+    «Schnabelgeiss» from the Knonauer Amt, so this may be the same object (to be checked).
+- The MKB online collection (onlinecollection.mkb.ch) is CC BY 4.0. On 13.11.2026 its search service
+  answered 403, also interactively in the browser. Fetching images from there runs as a separate task.
+
+**Pitt Rivers Museum.**
+- All 181 PRM objects in the Philippines database are in (`harvest_mkb.py --collection 275`).
+- The PRM's own database only works with a key embedded in its website and is not used. Legitimate
+  routes (documented APIs, IIIF, aggregators) are being checked separately.
+
 ## Run
 
 ```bash
@@ -259,6 +317,10 @@ venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_
   --pdf VMZ_objects-with-questionmark.pdf --pdf VMZ_objects-with-quotation-marks.pdf --out data   # ~30 s
 venv/bin/python harvest_more.py --out data      # more reference objects: Cleveland departments, Smithsonian (CC0)
 venv/bin/python harvest_md.py --out data        # German type names: museum-digital (EM Berlin, Übersee-Museum, MEK)
+venv/bin/python enrich_md_places.py --data data # places of the museum-digital objects (cache, resumable; slow API)
+venv/bin/python harvest_mkb.py --out data       # all MKB objects of the Philippines database (--collection 275: PRM)
+curl -o data/mkb_europa.json "https://data.bs.ch/api/explore/v2.1/catalog/datasets/100148/exports/json?select=inventarnummer,kurzbezeichnung,titel,datierung,material_technik,herkunft"
+venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_.xlsx --out data --catalog-only
 GPU_SHARE=0.5 venv/bin/python embed.py --data data --queries queries                            # incremental
 GPU_SHARE=0.5 venv/bin/python suggest_vmz.py --data data --public --out docs/review   # ~40 s (+ opus-mt-de-en on the first run)
 venv/bin/python make_overview.py --data data --results docs/review/vmz_results.json --out docs
@@ -282,6 +344,9 @@ CPU threads). It's quieter and takes about twice as long. `embed.py` only comput
   ranks, native names; writes the review page, Excel and JSON.
 - `harvest_more.py` – more reference objects (Cleveland departments, Smithsonian Freer|Sackler, NMAfA, NMAI; CC0).
 - `harvest_md.py` – reference objects with German type names from museum-digital (open JSON API).
+- `enrich_md_places.py` – places/peoples of the museum-digital objects for the geographic layer (cache only).
+- `harvest_mkb.py` – all objects of one holding museum in the Philippines database (MKB, PRM).
+- `geo.py` – geographic layer: country / world region / continent from the VMZ catalogue and reference texts.
 - `compare_refs.py` – compares two reference sets on the VMZ objects (coverage and name confirmation).
 - `make_overview.py` – the overview page for the challenge owners (`docs/index.html`).
 

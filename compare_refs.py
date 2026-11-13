@@ -19,29 +19,7 @@ from pathlib import Path
 import numpy as np
 
 from suggest import rrf
-from suggest_vmz import name_terms, type_term
-
-
-def sing(w):
-    if w.endswith("ies") and len(w) > 4:
-        return w[:-3] + "y"
-    if w.endswith("es") and w[:-2].endswith(("sh", "ch", "x", "ss")):
-        return w[:-2]
-    if w.endswith("s") and not w.endswith(("ss", "us")) and len(w) > 3:
-        return w[:-1]
-    return w
-
-
-def matches(term, en, names):
-    """Does one of the neighbour names contain the German term or the head noun of its translation?"""
-    head = sing((re.findall(r"[a-z]+", (en or "").lower()) or [""])[-1])
-    for nm in names:
-        low = nm.lower()
-        if len(term) >= 4 and term.lower() in low:
-            return True
-        if head and len(head) >= 3 and head in {sing(w) for w in re.findall(r"[a-zà-ÿ]+", low)}:
-            return True
-    return False
+from suggest_vmz import matches, name_terms, type_term
 
 
 def main():

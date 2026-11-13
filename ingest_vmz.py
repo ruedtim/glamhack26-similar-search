@@ -11,6 +11,7 @@ Outputs in DATA_DIR:
   - records.jsonl         records with source "vmz" appended (earlier "vmz" records are replaced)
 
 Usage: python ingest_vmz.py --xlsx X.xlsx --pdf A.pdf --pdf B.pdf --out DATA_DIR
+       python ingest_vmz.py --xlsx X.xlsx --out DATA_DIR --catalog-only   # only rewrite vmz_catalog.jsonl
 """
 import argparse
 import json
@@ -31,7 +32,10 @@ COLS = {  # catalogue column -> short field name
     "karte_Herkunft_c": "provenance", "karte_Hersteller_c": "maker", "karte_Sammler_c": "collector",
     "erwerb_Art": "acq_type", "erwerb_Datum": "acq_date", "region_Landname": "country",
     "size_Bemerkung": "size_note", "size_Breite": "w", "size_Hoehe": "h", "size_Laenge": "l",
-    "size_Tiefe": "d", "size_Durchmesser": "diam",
+    "size_Tiefe": "d", "size_Durchmesser": "diam", "size_Gewicht_Gramm_n": "weight_g",
+    "UnschaerfeVermerk_Kultur": "culture_note", "vmz_OriginalNr": "orig_nr", "karte_Ausstellungen_c": "exhibitions",
+    "karte_Dokumentation_c": "documentation", "karte_Literatur_c": "literature", "type_Objekteinheit": "units",
+    "region_LandAbk1_ISO": "iso", "region_LandAbk2_ISO": "iso2",
 }
 FLAGS = {"questionmark": "?", "quotation": "«»"}   # derived from the PDF file name
 
@@ -106,7 +110,8 @@ def match(sig, cat):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--xlsx", required=True)
-    ap.add_argument("--pdf", action="append", required=True)
+    ap.add_argument("--pdf", action="append", default=[])
+    ap.add_argument("--catalog-only", action="store_true", help="only rewrite vmz_catalog.jsonl")
     ap.add_argument("--out", required=True)
     ap.add_argument("--max-side", type=int, default=448)
     a = ap.parse_args()
@@ -121,6 +126,8 @@ def main():
     for r in cat_rows:
         cat.setdefault(r["sig"], r)          # 37 duplicate numbers: keep the first row
     print(f"catalogue: {len(cat_rows)} rows, {len(cat)} inventory numbers")
+    if a.catalog_only:
+        return
 
     objs = {}                                # sig -> record (objects on two PDFs are merged)
     no_photo = []

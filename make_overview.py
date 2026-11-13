@@ -19,11 +19,11 @@ REPO = "https://github.com/ruedtim/glamhack26-similar-search"
 GROUPS = [
     ("Ähnliche Objekte liefern den Fachbegriff",
      "Die visuell ähnlichsten Objekte aus anderen Sammlungen tragen oft schon den passenden Namen.",
-     ["00273", "00145ad"]),
+     ["00145ad", "24472"]),
     ("Die «?»-Hypothese wird vom Foto gestützt",
      "Der unsichere Begriff gehört zu den 2 % der VMZ-Begriffe, die am besten zum Foto passen – "
      "oft tragen auch die ähnlichsten Objekte diesen Namen.",
-     ["o.Nr.4211", "o.Nr.4101", "24472"]),
+     ["11948.015", "o.Nr.4211", "o.Nr.4101"]),
     ("Gegenvorschlag, wo die Hypothese nicht passt",
      "Der Begriff im Namen passt kaum zum Foto, dafür andere Begriffe aus dem eigenen Katalog.",
      ["o.Nr.5388", "08413.002", "o.Nr.2607"]),
@@ -51,27 +51,37 @@ def notes(o, res):
         n_ww = sum(x["count"] for x in ww)
         rest = [x["name"].split(" | ")[0] for x in nn if "winnowing" not in x["name"].lower()]
         rest = list(dict.fromkeys(rest))[:3]
-        worf = (f"ist eine Worfel ({quoted(x['name'] for x in ww)})" if n_ww == 1 else
-                f"sind {n_ww} Worfeln ({quoted(x['name'] for x in ww)})")
-        return (f"Unter den 12 ähnlichsten Objekten {worf}, die übrigen heissen {quoted(rest)}. Das Bild-Text-Modell "
-                f"kennt das seltene Wort «Worfel» nicht (Rang {rank(o, 'Worfel')}) – den Begriff liefert nur der "
-                f"Vergleich mit anderen Sammlungen.")
+        mkb = [m for m in o.get("mkb_europa", []) if "worfel" in m["title"].lower()]
+        if n_ww:
+            worf = (f"ist eine Worfel ({quoted(x['name'] for x in ww)})" if n_ww == 1 else
+                    f"sind {n_ww} Worfeln ({quoted(x['name'] for x in ww)})")
+            lead = f"Unter den 12 ähnlichsten Objekten {worf}, die übrigen heissen {quoted(rest)}."
+        else:
+            lead = f"Die 12 ähnlichsten Objekte heissen {quoted(rest)} – keine Worfel."
+        return (f"{lead} Das Bild-Text-Modell kennt das seltene Wort «Worfel» nicht (Rang {rank(o, 'Worfel')})"
+                + (f"; die MKB-Sammlung Europa kennt das Wort in {len(mkb)}+ Titeln ({quoted(m['title'] for m in mkb[:2])})."
+                   if mkb else "."))
     if inv == "00145ad":
         gw = sum(x["count"] for x in nn if "goldgewicht" in x["name"].lower())
         return (f"{'Alle 12' if gw == 12 else f'{gw} der 12'} ähnlichsten Objekte sind Goldgewichte aus dem "
                 f"Museum Rietberg: Wenn der Vergleichsbestand den Objekttyp enthält, sind die Treffer sehr genau.")
+    if inv == "11948.015":
+        k = sum("pfeilspitze" in n for n in names5)
+        hold = sorted({n["holder"].split(",")[0] for n in nb if "pfeilspitze" in n["name"].lower()})
+        return (f"«Pfeilspitze» steht auf Rang {rank(o, 'Pfeilspitze')} von {v}; {k} der 5 ähnlichsten Objekte heissen "
+                f"«Pfeilspitze …» ({', '.join(hold)}) – Bild-Text-Abgleich und Vergleichsobjekte stimmen überein.")
     if inv == "o.Nr.4211":
         k = sum("haarnadel" in n for n in names5)
         return (f"«Haarnadel» steht auf Rang {rank(o, 'Haarnadel')} von {v}; {k} der 5 ähnlichsten Objekte sind "
                 f"Haarnadeln aus dem Museum Rietberg.")
     if inv == "o.Nr.4101":
-        first = nb[0]
-        lead = (f"das ähnlichste Objekt ist eine «{first['name']}» ({first['holder'].replace('The ', '')})"
-                if "harpoon" in first["name"].lower() else "unter den ähnlichsten Objekten ist eine Harpune")
-        others = Counter(re.sub(r"^[A-Z]\d+/?\d*\s+", "", n["name"]) for n in nb[1:])
-        rest = ", ".join(f"{c}× «{k}»" if c > 1 else f"«{k}»" for k, c in others.most_common())
-        return f"«Harpune» steht auf Rang {rank(o, 'Harpune')} von {v}; {lead}, dazu {rest}."
-    if inv == "24472":
+        n_h = sum(x["count"] for x in nn if re.search(r"harpoon|harpune", x["name"].lower()))
+        top5 = Counter(re.sub(r"^[A-Z]\d+/?\d*\s+", "", n["name"]) for n in nb)
+        rest = ", ".join(f"{c}× «{k}»" if c > 1 else f"«{k}»" for k, c in top5.most_common())
+        return (f"«Harpune» steht auf Rang {rank(o, 'Harpune')} von {v}"
+                + (f"; unter den 12 ähnlichsten Objekten {'ist eine' if n_h == 1 else f'sind {n_h}'} «Harpoon»" if n_h else "")
+                + f". Die fünf ähnlichsten: {rest}.")
+    if inv == "24472":   # group A: the neighbours name the textile type
         suz = next((n for n in nb if "suzani" in n["name"].lower()), None)
         nat = " und ".join("«" + m["term"] + "»" for m in o["native_matches"][:2])
         return (f"«Bettüberwurf» steht auf Rang {rank(o, 'Bettüberwurf')} von {v}."
@@ -131,6 +141,11 @@ def main():
     tn, hn = max(1, st.get("type_n", 0)), max(1, st.get("hyp_n", 0))
     n_ref = sum(res["ref"].values())
     label = {"sup": "gestützt", "pos": "möglich", "no": "nicht gestützt"}
+
+    def pct(a, b):
+        return f"{a / b:.0%}" if b else "–"
+    better = st.get("geo_type_l2", 0) + st.get("geo_hyp_l2", 0) > st.get("geo_type_l1", 0) + st.get("geo_hyp_l1", 0)
+    geo_word = "eine hilfreiche zweite Sicht" if better else "eine zusätzliche Sicht, kein besserer Namensgeber"
 
     def card(o):
         safe = re.sub(r"[^\w.-]+", "_", o["inv"])
@@ -198,8 +213,9 @@ a{{color:var(--acc)}}
 @media (max-width:640px){{.ex{{grid-template-columns:1fr}} .q img{{max-width:280px}} .nbs{{grid-template-columns:repeat(3,minmax(0,1fr))}}}}
 @media print{{@page{{size:A4;margin:12mm 13mm}} :root{{--bg:#fff;--card:#fff;--chip:#efece4;--sup:#d5ebd7;--pos:#f2e7c9;--fg:#1c1b19;--mut:#5d5b55;--line:#dedad0;--acc:#8a3b12}}
  body{{font-size:9.5pt;line-height:1.4}} main{{padding:0;max-width:none}} .links{{display:none}}
- h1{{font-size:22pt}} .lead{{font-size:11pt}} h2{{font-size:14pt;margin:16px 0 6px}} h3{{font-size:12pt;margin:0 0 2px}} h4{{font-size:10.5pt;margin:0 0 4px}}
- .figs{{grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 4px}} .fig{{padding:8px 10px}} .fig b{{font-size:18pt}} .fig span{{font-size:8.5pt}}
+ h1{{font-size:20pt;margin:0 0 8px}} .lead{{font-size:10pt}} h2{{font-size:13pt;margin:12px 0 4px}} h3{{font-size:11.5pt;margin:0 0 2px}} h4{{font-size:10.5pt;margin:0 0 4px}}
+ .figs{{grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 2px}} .fig{{padding:6px 10px}} .fig b{{font-size:16pt}} .fig span{{font-size:8pt}}
+ ol.steps{{font-size:8.8pt;margin:4px 0}} .gl{{margin:0 0 6px}}
  .ex{{grid-template-columns:32mm 1fr;padding:8px 10px;gap:10px;margin:6px 0}} .q figcaption{{font-size:7.5pt}}
  .chip{{font-size:8.5pt;padding:1px 8px}} .nb{{font-size:7pt;line-height:1.25}} .nbs{{grid-template-columns:repeat(5,21mm);gap:5px}}
  .nbn{{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
@@ -225,6 +241,7 @@ Erste Resultate, Stand 13. November 2026.</p>
 <li><b>Ähnliche Objekte finden.</b> Zwei Bildmodelle (SigLIP 2, DINOv2) suchen zu jedem Foto die ähnlichsten Objekte in anderen Sammlungen – mit deren Namen, Museum und Link.</li>
 <li><b>Eigene Begriffe vorschlagen.</b> Ein Bild-Text-Modell ordnet alle {res['vocab']} Typbegriffe aus den Objektnamen des VMZ-Katalogs nach ihrer Passung zum Foto. Dafür werden die Begriffe maschinell ins Englische übersetzt, weil das Modell Englisch viel besser versteht. Ebenso mit den englischen Objektnamen der Vergleichssammlungen.</li>
 <li><b>«?»-Hypothesen prüfen.</b> Jeder Begriff im aktuellen Namen bekommt seinen Rang unter allen Begriffen: Top 2 % (Rang ≤ {res['sup']}) = vom Foto gestützt, Top 10 % (≤ {res['pos']}) = möglich.</li>
+<li><b>Geografische Nähe als zweite Schicht.</b> Unter den visuell ähnlichsten Objekten werden zusätzlich die aus derselben Weltregion bzw. demselben Land gezeigt. Die Herkunft stammt aus dem VMZ-Katalog und aus den Angaben der anderen Museen (Länder, Regionen, Ethnien – zugeordnet über den VMZ-Katalog selbst).</li>
 </ol>
 
 <h2>Vielversprechende Beispiele</h2>
@@ -235,6 +252,7 @@ Erste Resultate, Stand 13. November 2026.</p>
 <li><b>Ähnliche Objekte sind der stärkste Hinweis</b> – sofern der Vergleichsbestand den Objekttyp enthält. Sie zeigen auch, wie andere Museen ein Objekt benennen.</li>
 <li><b>«Gestützt» ist ein starkes Indiz</b> (zufällig nur 2 %), <b>«nicht gestützt» nur ein schwaches</b>: Auch sichere Begriffe aus den aktuellen Namen sind nur bei {st.get('type_sup', 0) / tn:.0%} gestützt, besonders seltene Fachwörter fallen durch.</li>
 <li><b>Deutsche Fachbegriffe müssen übersetzt werden.</b> Mit Übersetzung landet der richtige Typbegriff im Mittel auf Rang {st.get('type_ranks') or '–'} statt 809 (von {res['vocab']}). Seltene Wörter wie «Worfel» kennt aber auch die Übersetzung nicht.</li>
+<li><b>Geografische Nähe ist {geo_word}.</b> Bei {st.get('geo_with_layer', 0)} Objekten gibt es mindestens fünf visuell ähnliche Objekte aus derselben Weltregion. Deren Namen bestätigen den Typbegriff in {pct(st.get('geo_type_l2', 0), st.get('geo_type_n', 0))} der Fälle (rein visuell: {pct(st.get('geo_type_l1', 0), st.get('geo_type_n', 0))}), die «?»-Hypothese in {pct(st.get('geo_hyp_l2', 0), st.get('geo_hyp_n', 0))} (rein visuell: {pct(st.get('geo_hyp_l1', 0), st.get('geo_hyp_n', 0))}). Die regionale Liste zeigt dafür Vergleichsstücke aus demselben kulturellen Umfeld.</li>
 <li><b>Anführungszeichen markieren meist Bildtitel</b> («Bild: „Abendmahl“»). Dort trägt die Methode nur Technikbegriffe bei (Malerei auf Reispapier, Blockdruck).</li>
 <li><b>Ethnografische Sammlungen mit deutschen Typbezeichnungen bringen am meisten.</b> Vergleichsbestand: {esc(sources)}. 12317 zusätzliche CC0-Objekte aus Cleveland und Smithsonian machen die ähnlichsten Objekte deutlich näher (Asien 0.781 → 0.805, Amerika 0.823 → 0.850), die Namen der Nachbarn bestätigen den Typbegriff aber kaum häufiger (14 % → 16 %): Kunstmuseen benennen mit Titeln statt Objekttypen. Nur 3171 Objekte via museum-digital (Ethnologisches Museum Berlin, Übersee-Museum Bremen, Museum Europäischer Kulturen) heben die Bestätigung dagegen auf 20 % («?»-Hypothesen 8 % → 11 % → 14 %).</li>
 </ul>

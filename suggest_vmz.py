@@ -28,6 +28,7 @@ from PIL import Image
 
 from evaluate import clean
 from models import Embedder
+from geo import Geo, proximity
 from suggest import clean_de, rrf
 
 QUOTES = "\"„“”«»‚‘’`´"
@@ -38,7 +39,10 @@ RIGHTS_PUBLIC = ("Fotos der VMZ-Objekte: © Völkerkundemuseum der Universität 
                  "Museum of Art und Smithsonian (CC0), Museum Rietberg (CC BY-SA), via museum-digital: "
                  "Ethnologisches Museum, Staatliche Museen zu Berlin (CC BY-NC-SA) und Übersee-Museum Bremen "
                  "(CC BY-SA), Mapping Philippine Material Culture (© die besitzenden Museen) – Miniaturen nur zum "
-                 "Vergleich, mit Link zur Quelle.")
+                 "Vergleich, mit Link zur Quelle. Texttreffer: Museum der Kulturen Basel, Sammlung Europa "
+                 "(data.bs.ch, CC BY 4.0).")
+CATALOG_PUBLIC = ("Katalogdaten ohne Sammler, Herkunft, Eingangsbuch und interne Notizen; Beschreibungen nur für "
+                  "Erwerbungen vor 1980 und ohne Sätze zu Personen, Erwerb oder Wert.")
 MT_MODEL = "Helsinki-NLP/opus-mt-de-en"
 MT_FRAME = "Ethnografische Sammlung: Maske, Trommel, {}"   # context makes single-word MT much better
 
@@ -106,6 +110,115 @@ def natives(s):
     return [x for x in (re.sub(r"[^\w\s-]", " ", p).strip().lower() for p in parts) if len(x) >= 3]
 
 
+PUBLIC_FIELDS = [("native", "Einheimischer Name"), ("use", "Gebrauch"), ("material", "Material"),
+                 ("descr", "Beschreibung"), ("maker", "Hersteller"), ("ethnie", "Ethnie"),
+                 ("culture_note", "Unschärfevermerk Kultur"), ("religion", "Religion"), ("language", "Sprache"),
+                 ("continent", "Kontinent"), ("world_region", "Weltregion"), ("geo_region", "Region"),
+                 ("place", "Ort"), ("country", "Land"), ("dims", "Masse (Katalog)"), ("orig_nr", "Original-Nr."),
+                 ("units", "Objekteinheit"), ("acq_type", "Erwerbsart"), ("acq_date", "Erwerbsdatum"),
+                 ("exhibitions", "Ausstellungen"), ("literature", "Literatur"), ("documentation", "Dokumentation")]
+INTERNAL_FIELDS = [("entry_book", "Eingangsbuch"), ("provenance", "Herkunft"), ("collector", "Sammler"),
+                   ("control", "Kontrollhilfe")]
+# sentences of the description that are about persons, acquisition, collections or value -> not public
+REDACT = re.compile(r"CHF|SFr|Franken|\bFr\.\s*\d|\bWert\b|\bHerrn?\b|\bFrau\b|\bDr\.|\bProf\.|katalogisiert|"
+                    r"\bBrief|gesammelt|erworben|geschenkt|Geschenk|Schenkung|vermacht|Nachlass|Sammler|Sammlung|"
+                    r"gekauft|\bKauf|verkauft|Händler|\b(19[89]\d|20\d\d)\b", re.I)   # years >= 1980: recent notes
+
+
+def sing(w):
+    if w.endswith("ies") and len(w) > 4:
+        return w[:-3] + "y"
+    if w.endswith("es") and w[:-2].endswith(("sh", "ch", "x", "ss")):
+        return w[:-2]
+    if w.endswith("s") and not w.endswith(("ss", "us")) and len(w) > 3:
+        return w[:-1]
+    return w
+
+
+def matches(term, en, names):
+    """Does one of the neighbour names contain the German term or the head noun of its translation?"""
+    head = sing((re.findall(r"[a-z]+", (en or "").lower()) or [""])[-1])
+    for nm in names:
+        low = nm.lower()
+        if len(term) >= 4 and term.lower() in low:
+            return True
+        if head and len(head) >= 3 and head in {sing(w) for w in re.findall(r"[a-zà-ÿ]+", low)}:
+            return True
+    return False
+
+
+def wrrf(rank_lists, weights, k=60):
+    """Weighted reciprocal rank fusion."""
+    score = defaultdict(float)
+    for ranks, w in zip(rank_lists, weights):
+        for r, j in enumerate(ranks):
+            score[j] += w / (k + r + 1)
+    return sorted(score, key=lambda j: -score[j])
+
+
+class MkbText:
+    """Text layer: the same designation in the MKB «Sammlung Europa» (data.bs.ch, CC BY 4.0, no images).
+    Only short name, title, origin and inventory number are used (no supplier names)."""
+
+    def __init__(self, path, max_hits=40):
+        self.recs = json.load(open(path, encoding="utf-8"))
+        self.max_hits = max_hits
+        index = defaultdict(set)
+        for k, r in enumerate(self.recs):
+            for w in re.findall(r"[\wÀ-ÿ-]+", f"{r.get('kurzbezeichnung') or ''} {r.get('titel') or ''}".lower()):
+                if len(w) >= 3:
+                    index[w].add(k)
+        self.index = index
+        self.cache = {}
+
+    def hits(self, term):
+        t = term.lower()
+        if t not in self.cache:
+            ids = set()
+            for w, ks in self.index.items():
+                if t in w:
+                    ids |= ks
+            self.cache[t] = ids
+        return self.cache[t]
+
+    def matches(self, terms, n=4):
+        """Records whose short name/title contain one of the terms; only specific terms (<= max_hits)."""
+        out, seen = [], set()
+        scored = sorted(((len(self.hits(t)), t) for t in terms if len(t) >= 4), key=lambda x: x[0])
+        for cnt, t in scored:
+            if not 0 < cnt <= self.max_hits:
+                continue
+            for k in sorted(self.hits(t)):
+                if k not in seen and len(out) < n:
+                    seen.add(k)
+                    r = self.recs[k]
+                    out.append({"term": t, "count": cnt, "inv": r.get("inventarnummer") or "",
+                                "type": r.get("kurzbezeichnung") or "", "title": r.get("titel") or "",
+                                "origin": ", ".join(r.get("herkunft") or [])})
+        return out
+
+
+def catalog_fields(c, public):
+    """Catalogue fields to show as (label, value). Public: without collector, provenance, accession register and
+    internal notes; the description only for acquisitions before 1980 and without sentences about persons,
+    acquisition, collections or value (marked «[gekürzt]»)."""
+    dims = "; ".join(f"{lab} {c[k]}" for k, lab in (("h", "H"), ("w", "B"), ("l", "L"), ("d", "T"), ("diam", "Ø"))
+                     if c.get(k))
+    if c.get("weight_g"):
+        dims += ("; " if dims else "") + f"{c['weight_g']} g"
+    if c.get("size_note"):
+        dims += (" – " if dims else "") + c["size_note"]
+    vals = dict(c, dims=dims)
+    if public:
+        m = re.search(r"1[89]\d\d|20\d\d", c.get("acq_date") or "")
+        year = int(m.group()) if m else None
+        sents = [x for x in re.split(r"(?<=[.!?])\s+|\n+", c.get("descr") or "") if x.strip()]
+        keep = [x for x in sents if not REDACT.search(x)]
+        vals["descr"] = "" if not year or year >= 1980 or not keep else \
+            " ".join(keep) + (" [gekürzt]" if len(keep) < len(sents) else "")
+    return [(k, lab, vals[k]) for k, lab in PUBLIC_FIELDS + ([] if public else INTERNAL_FIELDS) if vals.get(k)]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", required=True)
@@ -114,6 +227,8 @@ def main():
     ap.add_argument("--min-count", type=int, default=3, help="min. frequency of a term in the VMZ catalogue")
     ap.add_argument("--records", help="records file (default DATA_DIR/records.jsonl); an older, shorter "
                                       "records file uses the first rows of the embeddings")
+    ap.add_argument("--dino-weight", type=float, default=0.25,
+                    help="weight of DINOv2 in the rank fusion (SigLIP 2 = 1); 0.25 was best for naming, 1.0 clearly worse")
     ap.add_argument("--hub-max", type=int, default=10,
                     help="hide reference objects that are among the top 5 of at least this many VMZ photos")
     ap.add_argument("--public", action="store_true",
@@ -123,6 +238,12 @@ def main():
     (out / "img").mkdir(parents=True, exist_ok=True)
 
     recs = [json.loads(l) for l in open(a.records or data / "records.jsonl", encoding="utf-8")]
+    md_cache = data / "md_detail_cache.json"                  # places / peoples of museum-digital objects
+    if md_cache.exists():
+        places = json.load(open(md_cache, encoding="utf-8"))
+        for r in recs:
+            if r["source"] == "md" and r["id"] in places and not r.get("culture"):
+                r["culture"] = "; ".join(places[r["id"]][0] + places[r["id"]][1])
     E = {m: np.load(data / f"emb_{m}.npy") for m in ["siglip2", "dinov2"]}
     if any(len(v) != len(recs) for v in E.values()):
         ids = json.load(open(data / "ids.json"))
@@ -182,9 +303,14 @@ def main():
             s = E[m][ref] @ E[m][i]
             order = [o for o in np.argsort(-s)[:200] if s[o] < 0.995]
             cand[i][m] = ([ref[o] for o in order], {ref[o]: float(s[o]) for o in order})
+    mkb = MkbText(data / "mkb_europa.json") if (data / "mkb_europa.json").exists() else None
+    # geographic layer: country / world region / continent from the catalogue and the reference metadata
+    g = Geo(data / "vmz_catalog.jsonl")
+    ref_geo = {j: g.ref(recs[j]) for j in ref}
     # hubs: reference objects that land in the top 5 of very many VMZ photos (e.g. small glass fragments
     # of the Freer Gallery) carry no information about a single object -> hidden
-    freq = Counter(j for i in q_idx for j in rrf([cand[i][m][0][:60] for m in E])[:5])
+    weights = [1.0 if m == "siglip2" else a.dino_weight for m in E]
+    freq = Counter(j for i in q_idx for j in wrrf([cand[i][m][0][:60] for m in E], weights)[:5])
     hubs = {j for j, c in freq.items() if c >= a.hub_max}
     stats["hubs"], stats["hub_max"] = len(hubs), a.hub_max
     print(f"hidden hubs (top 5 of >= {a.hub_max} photos): {len(hubs)}: "
@@ -196,7 +322,15 @@ def main():
         ranks = [[j for j in cand[i][m][0] if j not in hubs][:60] for m in E]
         sims = cand[i]["siglip2"][1]
         top1_sims.append(sims[ranks[list(E).index("siglip2")][0]])
-        top = rrf(ranks)[:a.k]
+        top = wrrf(ranks, weights)[:a.k]
+        # second layer: the visually most similar objects (deeper candidate list) from the same world region
+        c = by_sig.get(r.get("cat_sig") or "", {})
+        q_geo = g.vmz(c) if c else g.full()
+        top_geo = []
+        if q_geo["region"] or q_geo["iso"]:
+            deep = wrrf([[j for j in cand[i][m][0] if j not in hubs] for m in E], weights)
+            top_geo = [j for j in deep if proximity(q_geo, ref_geo[j]) >= 2][:a.k]
+        geo_sims = {j: cand[i]["siglip2"][1].get(j) for j in top_geo}
         groups, shown = Counter(), {}
         for j in top:
             nm = recs[j]["name"]
@@ -217,7 +351,8 @@ def main():
             rank = 1 + int((s_de > v).sum()) - (1 if t in de_pos and s_de[de_pos[t]] > v else 0)
             term_ranks.append((t, mark, rank))
 
-        c = by_sig.get(r.get("cat_sig") or "", {})
+        mkb_hits = mkb.matches([t for t, _ in terms_q[i]]) if mkb else []
+        stats["mkb_objects"] += bool(mkb_hits)
         nat = []
         for n in natives(c.get("native")):
             for t, k in nat_idx.get(n, Counter()).most_common(3):
@@ -233,13 +368,28 @@ def main():
             stats["type_sup"] += rk <= sup
             stats["type_pos"] += sup < rk <= pos
             stats["type_ranks"] += [rk]
+        if len(top_geo) >= 5:     # does the geographic layer confirm names more often than the visual one?
+            n1, n2 = [recs[j]["name"] for j in top[:5]], [recs[j]["name"] for j in top_geo[:5]]
+            if tt in tr and certain:
+                stats["geo_type_n"] += 1
+                stats["geo_type_l1"] += matches(tt, tr[tt], n1)
+                stats["geo_type_l2"] += matches(tt, tr[tt], n2)
+            for t, mark in terms_q[i]:
+                if mark == "?" and t in tr:
+                    stats["geo_hyp_n"] += 1
+                    stats["geo_hyp_l1"] += matches(t, tr[t], n1)
+                    stats["geo_hyp_l2"] += matches(t, tr[t], n2)
+        stats["geo_with_region"] += bool(q_geo["region"] or q_geo["iso"])
+        stats["geo_with_layer"] += len(top_geo) >= 5
         for t, mark, rank in term_ranks:
             if mark == "?":
                 stats["hyp_n"] += 1
                 stats["hyp_sup"] += rank <= sup
                 stats["hyp_pos"] += sup < rank <= pos
         rows.append(dict(i=i, top=top, sims=sims, knn=knn_names, de=zs_de, en=zs_en, terms=term_ranks, nat=nat,
-                         cat=c))
+                         cat=c, catalog=catalog_fields(c, a.public) if c else [], geo=q_geo, top_geo=top_geo,
+                         geo_sims=geo_sims, geo_level={j: proximity(q_geo, ref_geo[j]) for j in top_geo},
+                         mkb=mkb_hits))
     n = len(q_idx)
     print(f"\nnearest neighbour (SigLIP 2 cosine) median {np.median(top1_sims):.3f}, "
           f"p10 {np.percentile(top1_sims, 10):.3f}, p90 {np.percentile(top1_sims, 90):.3f}")
@@ -252,6 +402,10 @@ def main():
         hn = stats["hyp_n"]
         print(f"«?» hypotheses: n={hn}, rank <= {sup}: {stats['hyp_sup'] / hn:.0%}, "
               f"{sup + 1}-{pos}: {stats['hyp_pos'] / hn:.0%}")
+    print(f"geographic layer: region known for {stats['geo_with_region']} objects, >= 5 regional neighbours for "
+          f"{stats['geo_with_layer']}; type term in top-5 names {stats['geo_type_l1']} visual vs {stats['geo_type_l2']} "
+          f"regional (n={stats['geo_type_n']}); «?» hypotheses {stats['geo_hyp_l1']} vs {stats['geo_hyp_l2']} "
+          f"(n={stats['geo_hyp_n']})")
     print(f"objects with native name: {sum(bool(natives(x['cat'].get('native'))) for x in rows)}, "
           f"with catalogue matches for it: {sum(bool(x['nat']) for x in rows)}")
 
@@ -276,6 +430,7 @@ def main():
             "inv": r["inv"], "name": r["name"], "flag": r["flag"], "match": r["match"], "img": r["img"],
             "culture": r.get("culture", ""), "country": x["cat"].get("country", ""),
             "native": x["cat"].get("native", ""), "top1": round(s1, 3),
+            "catalog": {lab: v for _, lab, v in x["catalog"]},
             "terms": [{"term": t, "mark": m, "rank": k, "en": tr.get(t, "")} for t, m, k in x["terms"]],
             "vmz_terms": [{"term": t, "en": tr.get(t, "")} for t in x["de"]], "en_terms": x["en"],
             "neighbour_names": [{"name": nm, "count": k} for nm, k in x["knn"]],
@@ -283,7 +438,12 @@ def main():
             "neighbours": [{"id": recs[j]["id"], "name": recs[j]["name"], "holder": recs[j].get("holder", ""),
                             "culture": recs[j].get("culture", ""), "url": recs[j]["url"], "img": recs[j]["img"],
                             "licence": recs[j].get("licence", ""), "sim": round(x["sims"].get(j, 0), 3)}
-                           for j in x["top"][:8]]})
+                           for j in x["top"][:8]],
+            "geo": x["geo"], "mkb_europa": x["mkb"],
+            "neighbours_geo": [{"id": recs[j]["id"], "name": recs[j]["name"], "holder": recs[j].get("holder", ""),
+                                "culture": recs[j].get("culture", ""), "url": recs[j]["url"], "img": recs[j]["img"],
+                                "licence": recs[j].get("licence", ""), "sim": round(x["geo_sims"].get(j) or 0, 3),
+                                "proximity": x["geo_level"][j]} for j in x["top_geo"][:8]]})
     json.dump(res, open(out / "vmz_results.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
     write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_sims, tr, sup, pos)
@@ -311,16 +471,30 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
         c = x["cat"]
         safe = re.sub(r"[^\w.-]+", "_", r["inv"])
         qimg = thumb(data / r["img"], out / "img" / f"q_{safe}.jpg", 320, done)
-        cards = []
-        for j in x["top"][:8]:
+        def card(j, sim, badge=""):
             rj = recs[j]
             t = thumb(data / rj["img"], out / "img" / ("r_" + re.sub(r"[^\w.-]+", "_", rj["id"]) + ".jpg"), 150, done)
-            sim = x["sims"].get(j)
-            cards.append(
-                f'<a class="c" href="{esc(rj["url"])}" target="_blank" rel="noopener">'
-                f'<img src="{t}" alt="" loading="lazy"><b>{esc(rj["name"][:70])}</b>'
-                f'<small>{esc((rj.get("holder") or "")[:45])}{" · " + esc(rj["culture"][:30]) if rj.get("culture") else ""}'
-                f'{f" · {sim:.2f}" if sim else ""}</small></a>')
+            return (f'<a class="c" href="{esc(rj["url"])}" target="_blank" rel="noopener">'
+                    f'<img src="{t}" alt="" loading="lazy"><b>{esc(rj["name"][:70])}</b>'
+                    f'<small>{esc((rj.get("holder") or "")[:45])}{" · " + esc(rj["culture"][:30]) if rj.get("culture") else ""}'
+                    f'{f" · {sim:.2f}" if sim else ""}</small>{f"<small class=geo>{badge}</small>" if badge else ""}</a>')
+
+        cards = [card(j, x["sims"].get(j)) for j in x["top"][:8]]
+        mkb_block = ("<h3>Gleiche Bezeichnung in der MKB-Sammlung Europa (Text, ohne Bild)</h3><div>"
+                     + "".join(f'<span class="chip">{esc(m["type"])} «{esc(m["title"][:60])}» <i>{esc(m["origin"][:50])}'
+                               f' · {esc(m["inv"])}</i></span>' for m in x["mkb"]) + "</div>") if x["mkb"] else ""
+        geo_lab = x["geo"]["region"] or x["geo"]["iso"]
+        if x["top_geo"]:
+            gcards = "".join(card(j, x["geo_sims"].get(j), "gleiches Land" if x["geo_level"][j] == 3 else "gleiche Region")
+                             for j in x["top_geo"][:8])
+            geo_block = (f'<h3>Ähnlich und aus derselben Region ({esc(geo_lab)})</h3>'
+                         f'<div class="grid">{gcards}</div>')
+        elif geo_lab:
+            geo_block = (f'<h3>Ähnlich und aus derselben Region ({esc(geo_lab)})</h3><small>Unter den je 200 visuell '
+                         f'ähnlichsten Objekten keines aus dieser Region.</small>')
+        else:
+            geo_block = '<h3>Ähnlich und aus derselben Region</h3><small>Keine Herkunftsregion im Katalog.</small>'
+
         hyp = [t for t in x["terms"] if t[1] == "?"]
         hyp_state = ("na" if not hyp else "sup" if any(k <= sup for _, _, k in hyp)
                      else "pos" if any(k <= pos for _, _, k in hyp) else "no")
@@ -331,12 +505,17 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
                 ("Region", ", ".join(v for v in (c.get("geo_region"), c.get("country")) if v)),
                 ("Gebrauch", c.get("use")), ("Material", c.get("material"))]
         meta_html = "".join(f"<small><span class=k>{k}:</span> {esc(v[:120])}</small>" for k, v in meta if v)
+        more = [(lab, v) for k, lab, v in x["catalog"] if k not in ("native", "ethnie", "geo_region", "country",
+                                                                     "use", "material")]
+        if more:
+            meta_html += (f'<details class="cat"><summary>Weitere Katalogdaten ({len(more)})</summary><dl>'
+                          + "".join(f"<dt>{esc(lab)}</dt><dd>{esc(v)}</dd>" for lab, v in more) + "</dl></details>")
         log = "" if a.public else re.sub(r"\s+", " ", r.get("desc") or "")
         note = (f'<small class="warn">Teilobjekt: Katalogdaten vom Hauptobjekt {esc(r["cat_sig"])}</small>'
                 if r.get("match") == "main object" else
                 '<small class="warn">nicht im Katalog gefunden</small>' if r.get("match") == "none" else "")
         nat = "".join(f'<span class="chip">{esc(t)} <i>×{k} ({esc(nn)})</i></span>' for nn, t, k in x["nat"][:4])
-        text = " ".join([r["inv"], r["name"], c.get("native", ""), c.get("ethnie", ""), c.get("country", ""),
+        text = " ".join([r["inv"], r["name"], " ".join(v for _, _, v in x["catalog"]),
                          " ".join(x["de"]), " ".join(x["en"]), " ".join(nm for nm, _ in x["knn"])]).lower()
         blocks.append(f"""<section data-flag="{esc(r['flag'])}" data-hyp="{hyp_state}" data-text="{esc(text)}">
 <div class="row"><div class="q"><img src="{qimg}" alt="" loading="lazy">
@@ -349,7 +528,9 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
 <h3>Englische Begriffe (Namen in den Vergleichssammlungen)</h3><div>{''.join(f'<span class="chip">{esc(t)}</span>' for t in x['en'])}</div>
 <h3>Namen der ähnlichsten Objekte (andere Sammlungen)</h3><div>{''.join(f'<span class="chip">{esc(nm)} <i>×{k}</i></span>' for nm, k in x['knn'])}</div>
 {f'<h3>Gleicher einheimischer Name im VMZ-Katalog</h3><div>{nat}</div>' if nat else ''}
+{mkb_block}
 <h3>Ähnlichste Objekte</h3><div class="grid">{''.join(cards)}</div>
+{geo_block}
 </div></div></section>""")
 
     tn, hn = max(1, stats["type_n"]), max(1, stats["hyp_n"])
@@ -358,8 +539,8 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
     page = f"""<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>VMZ Namensvorschläge</title>
 <style>
-:root{{--bg:#fafaf8;--fg:#1d1d1b;--mut:#6b6b66;--card:#fff;--line:#e3e2dc;--chip:#f0eee6;--sup:#d7ecd9;--pos:#f3ead0;--no:#f0eee6;--warn:#9a5b00}}
-@media (prefers-color-scheme: dark){{:root:not([data-theme="light"]){{--bg:#191917;--fg:#ecebe6;--mut:#a3a29b;--card:#242422;--line:#3a3935;--chip:#33322e;--sup:#24402a;--pos:#463d22;--no:#33322e;--warn:#e0a24a}}}}
+:root{{--bg:#fafaf8;--fg:#1d1d1b;--mut:#6b6b66;--card:#fff;--line:#e3e2dc;--chip:#f0eee6;--sup:#d7ecd9;--pos:#f3ead0;--no:#f0eee6;--warn:#9a5b00;--acc2:#2f6b3a}}
+@media (prefers-color-scheme: dark){{:root:not([data-theme="light"]){{--bg:#191917;--fg:#ecebe6;--mut:#a3a29b;--card:#242422;--line:#3a3935;--chip:#33322e;--sup:#24402a;--pos:#463d22;--no:#33322e;--warn:#e0a24a;--acc2:#8fd19e}}}}
 body{{background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,sans-serif;margin:0 auto;max-width:1240px;padding:16px}}
 h1{{font-size:24px;margin:8px 0}} h3{{font-size:13px;color:var(--mut);margin:12px 0 6px;font-weight:600}}
 .bar{{position:sticky;top:0;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center;z-index:2}}
@@ -374,11 +555,15 @@ section{{border-bottom:1px solid var(--line);padding:14px 0}}
 .chip.sup{{background:var(--sup)}} .chip.pos{{background:var(--pos)}} .chip i{{color:var(--mut);font-style:normal}}
 b{{font-size:13px}} .name{{font-size:15px}} small{{font-size:11px;color:var(--mut)}} .k{{font-weight:600}} .log{{font-style:italic}}
 .warn{{color:var(--warn)}} a{{color:inherit}} .lead{{max-width:900px}} .lead small{{font-size:13px}}
+details.cat{{font-size:11px;color:var(--mut)}} details.cat summary{{cursor:pointer;font-weight:600;margin:4px 0}}
+details.cat dl{{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;margin:4px 0}} details.cat dt{{font-weight:600}}
+details.cat dd{{margin:0;color:var(--fg);white-space:pre-line}}
+.c small.geo{{color:var(--acc2);font-weight:600}}
 @media (max-width:600px){{.q{{width:100%}}}}
 </style></head><body>
 <h1>Namensvorschläge für VMZ-Objekte mit «?» oder Anführungszeichen (PoC)</h1>
 <div class="lead"><p>{n} Objekte aus der GLAMhack-Stichprobe des Völkerkundemuseums der Universität Zürich.
-Vergleichsbestand: {len(ref)} Objekte anderer Sammlungen ({refmix}). Bildähnlichkeit: SigLIP 2 + DINOv2 (Rangfusion);
+Vergleichsbestand: {len(ref)} Objekte anderer Sammlungen ({refmix}). Bildähnlichkeit: SigLIP 2 + DINOv2 (gewichtete Rangfusion, DINOv2 mit Gewicht {a.dino_weight});
 Begriffe: SigLIP 2 Bild ↔ Text gegen {len(de_vocab)} Typbegriffe aus den Objektnamen des VMZ-Katalogs (≥ {a.min_count} Objekte),
 vorher maschinell ins Englische übersetzt (grau: die Übersetzung, mit der gerechnet wurde).</p>
 <p><small>Rang = Platz des Begriffs unter allen {len(de_vocab)} VMZ-Begriffen für dieses Foto:
@@ -387,10 +572,15 @@ Kalibrierung an den sicheren Typbegriffen der aktuellen Namen (n={stats['type_n'
 Median-Rang {int(np.median(stats['type_ranks'])) if stats['type_ranks'] else '–'}. «Gestützt» ist also ein starkes Indiz (zufällig: 2 %),
 «nicht gestützt» nur ein schwaches – auch richtige Begriffe landen oft dort, besonders seltene Fachwörter oder falsch übersetzte.
 Von {stats['hyp_n']} «?»-Hypothesen sind {stats['hyp_sup'] / hn:.0%} gestützt, {stats['hyp_pos'] / hn:.0%} möglich.
+Zweite Suchschicht: Unter den je 200 visuell ähnlichsten Objekten werden zusätzlich die aus derselben Weltregion
+bzw. demselben Land gezeigt (Herkunft aus dem VMZ-Katalog und den Angaben der Vergleichssammlungen); verfügbar bei
+{stats['geo_with_layer']} von {n} Objekten. Die Namen bestätigen dort den Typbegriff in
+{stats['geo_type_l2'] / max(1, stats['geo_type_n']):.0%} statt {stats['geo_type_l1'] / max(1, stats['geo_type_n']):.0%} der Fälle,
+die «?»-Hypothese in {stats['geo_hyp_l2'] / max(1, stats['geo_hyp_n']):.0%} statt {stats['geo_hyp_l1'] / max(1, stats['geo_hyp_n']):.0%}.
 Zahl auf den Karten = Bildähnlichkeit (SigLIP 2, höher = ähnlicher). Ausgeblendet sind {stats['hubs']} Vergleichsobjekte,
 die bei {stats['hub_max']} oder mehr Fotos unter den Top 5 wären («Hubs», z. B. kleine Glasfragmente).
 Vorschläge sind Hinweise – entscheiden muss die Fachperson.
-{RIGHTS_PUBLIC if a.public else 'Bilder und Katalogdaten: intern, nicht veröffentlichen.'}</small></p></div>
+{RIGHTS_PUBLIC + ' ' + CATALOG_PUBLIC if a.public else 'Bilder und Katalogdaten: intern, nicht veröffentlichen.'}</small></p></div>
 <div class="bar"><input id="q" type="search" placeholder="Suche: Inventarnummer, Name, Begriff, Region …" aria-label="Suche">
 <select id="flag" aria-label="Markierung"><option value="">«?» und Anführungszeichen</option><option value="?">nur «?»</option><option value="«»">nur Anführungszeichen</option></select>
 <select id="hyp" aria-label="Hypothese"><option value="">alle Hypothesen</option><option value="sup">«?»-Hypothese gestützt</option><option value="pos">«?»-Hypothese möglich</option><option value="no">«?»-Hypothese nicht gestützt</option></select>
@@ -412,7 +602,10 @@ function upd(){{const s=q.value.trim().toLowerCase(); let k=0;
                "Land", f"Begriffe im Namen (Rang von {len(de_vocab)}; ≤{sup} gestützt, ≤{pos} möglich)",
                "VMZ-Begriffe (Bild↔Text, mit MT-Übersetzung)", "Englische Begriffe",
                "Namen ähnlicher Objekte", "Gleicher einheimischer Name im Katalog",
-               "Ähnlichste Objekte (Name | Museum | Link)", "Ähnlichkeit Top-1 (SigLIP 2)"])
+               "Ähnlichste Objekte (Name | Museum | Link)", "Ähnlichkeit Top-1 (SigLIP 2)",
+               "Herkunftsregion", "Ähnlich und aus derselben Region (Name | Museum | Link)",
+               "MKB-Sammlung Europa (Text): gleiche Bezeichnung"]
+              + [lab for _, lab in PUBLIC_FIELDS + ([] if a.public else INTERNAL_FIELDS)])
     for x, s1 in zip(rows, top1_sims):
         r, c = recs[x["i"]], x["cat"]
         ws.append([r["inv"], r["name"], r["flag"], r["match"] if r["match"] != "exact" else "",
@@ -423,7 +616,12 @@ function upd(){{const s=q.value.trim().toLowerCase(); let k=0;
                    "; ".join(f"{t} ×{k} ({nn})" for nn, t, k in x["nat"]),
                    "\n".join(f"{recs[j]['name'][:60]} | {recs[j].get('holder', '')[:40]} | {recs[j]['url']}"
                              for j in x["top"][:5]),
-                   round(s1, 3)])
+                   round(s1, 3), x["geo"]["region"] or x["geo"]["iso"],
+                   "\n".join(f"{recs[j]['name'][:60]} | {recs[j].get('holder', '')[:40]} | {recs[j]['url']}"
+                             for j in x["top_geo"][:5]),
+                   "\n".join(f"{m['type']} «{m['title']}» | {m['origin']} | {m['inv']}" for m in x["mkb"])]
+                  + [dict((lab, v) for _, lab, v in x["catalog"]).get(lab, "")
+                     for _, lab in PUBLIC_FIELDS + ([] if a.public else INTERNAL_FIELDS)])
     for col, w in zip("ABCDEFGHIJKLMN", [12, 40, 8, 10, 18, 18, 14, 40, 50, 40, 50, 30, 80, 10]):
         ws.column_dimensions[col].width = w
     ws.freeze_panes = "C2"
