@@ -303,6 +303,57 @@ the same kind», which is what naming needs. A third model is less promising tha
 - The PRM's own database only works with a key embedded in its website and is not used. Legitimate
   routes (documented APIs, IIIF, aggregators) are being checked separately.
 
+## Larger model, «Figur» objects, MKB and PRM images (13.11.2026, evening)
+
+**SigLIP 2 so400m instead of base.** `compare_models.py` compares the models on the 748 «?»/quotes objects
+against 18,825 reference objects:
+
+| | type term among top-5 neighbour names | «?» hypothesis among them | term ranking: median rank of the certain type term (of 2,434) |
+|---|---|---|---|
+| SigLIP 2 base + DINOv2 × 0.25 | 22.6 % | 15.8 % | 155 |
+| **SigLIP 2 so400m + DINOv2 × 0.25 (now)** | **23.9 %** | **17.3 %** | **96** |
+| SigLIP 2 so400m alone | 23.9 % | 16.8 % | – |
+| DINOv2 alone | 14.3 % | 9.3 % | – |
+
+- so400m (google/siglip2-so400m-patch14-224, 4.5 GB) is better on almost every measure, most clearly in
+  the term ranking. The neighbour gain is small (within noise).
+- Embedding ~20,000 images took 25 min at half GPU load.
+- `embed.py --models siglip2_so400m`, `suggest_vmz.py --text-model siglip2_so400m`. Embeddings are matched
+  to records by id (`ids_<model>.json`).
+
+**271 objects named only «Figur»** (`data/VMZ_figure`, photos named by inventory number; imported with
+`ingest_vmz.py --images data/VMZ_figure --flag Figur`). This is the core case of the challenge.
+- The list has a filter «nur Figur».
+- Calibration figures are still computed on the «?»/quotes sample only, and so is the hub filter (similar
+  figures are expected to share neighbours).
+- Typical suggestions: neighbours named «Männliche/Weibliche Kraftfigur, nkisi» for Kongo figures,
+  «Sakyamuni Buddha» / «Bodhisattva» for Javanese bronzes, «Puppe» for a Japanese costume doll. VMZ terms
+  such as Wächterfigur, Hochzeitsfigur, Votivfigur and Götterfigur also come up.
+
+**Museum der Kulturen Basel, 7,310 objects with images** (`harvest_mkb_online.py`).
+- Source: the open IIIF interface of PARC – Portal for African Research Collections (Universität Basel).
+- The MKB online collection's search answered 403 on 13.11.2026 and was not worked around.
+- Index-card scans, photo-collection items, films and books are skipped.
+- No supplier names are stored.
+- PARC marks the images «In Copyright». Publication for this project was approved by an MKB employee on
+  13.11.2026 (credit «Museum der Kulturen Basel»).
+
+**Pitt Rivers Museum, 1,475 objects with images** (`harvest_prm.py`).
+- Source: the PRM's own public research microsites (Lower Gallery, Arms and Armour, Body Arts, Southern
+  Sudan).
+- Collections Online is not used, because its API key sits in the website code.
+- Objects with human remains or secret/sacred contexts are skipped (84).
+- The PRM allows non-commercial research use. Online publication needs a PRM licence, so **PRM objects
+  appear on the public pages only as text cards (name, museum, link)**. The 173 previously published
+  thumbnails of PRM/MKB objects (from the Philippines database) were removed from `docs/`; they remain in
+  older commits.
+- `merge_staged.py --no-publish-images` merges staged harvests. `suggest_vmz.can_publish` decides per
+  holder.
+
+Final run: 1,019 VMZ objects (506 «?», 238 quotes, 4 both, 271 «Figur») against **27,610 reference objects**
+(Cleveland 7,977, MKB 7,310, Smithsonian 4,840, museum-digital 3,171, Philippines database 1,944,
+PRM 1,475, Rietberg 893).
+
 ## Run
 
 ```bash
@@ -319,10 +370,17 @@ venv/bin/python harvest_more.py --out data      # more reference objects: Clevel
 venv/bin/python harvest_md.py --out data        # German type names: museum-digital (EM Berlin, Übersee-Museum, MEK)
 venv/bin/python enrich_md_places.py --data data # places of the museum-digital objects (cache, resumable; slow API)
 venv/bin/python harvest_mkb.py --out data       # all MKB objects of the Philippines database (--collection 275: PRM)
+venv/bin/python harvest_mkb_online.py --out data/mkb_online   # MKB via PARC (IIIF), staged; see its docstring
+venv/bin/python harvest_prm.py --out data/prm   # PRM research microsites, staged; see its docstring
+venv/bin/python merge_staged.py --data data --staged data/mkb_online --records records_mkb_online.jsonl
+venv/bin/python merge_staged.py --data data --staged data/prm --records records_prm.jsonl --no-publish-images
+venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_.xlsx --out data --images data/VMZ_figure --flag Figur
+GPU_SHARE=0.5 venv/bin/python embed.py --data data --queries queries --models siglip2,dinov2,siglip2_so400m
+GPU_SHARE=0.5 venv/bin/python compare_models.py --data data --models siglip2,siglip2_so400m,dinov2
 curl -o data/mkb_europa.json "https://data.bs.ch/api/explore/v2.1/catalog/datasets/100148/exports/json?select=inventarnummer,kurzbezeichnung,titel,datierung,material_technik,herkunft"
 venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_.xlsx --out data --catalog-only
 GPU_SHARE=0.5 venv/bin/python embed.py --data data --queries queries                            # incremental
-GPU_SHARE=0.5 venv/bin/python suggest_vmz.py --data data --public --out docs/review   # ~40 s (+ opus-mt-de-en on the first run)
+GPU_SHARE=0.5 venv/bin/python suggest_vmz.py --data data --public --out docs/review --text-model siglip2_so400m
 venv/bin/python make_overview.py --data data --results docs/review/vmz_results.json --out docs
 venv/bin/python compare_refs.py --data data --before data/records_before_more.jsonl   # old vs. new reference set
 ```
@@ -347,6 +405,8 @@ CPU threads). It's quieter and takes about twice as long. `embed.py` only comput
 - `enrich_md_places.py` – places/peoples of the museum-digital objects for the geographic layer (cache only).
 - `harvest_mkb.py` – all objects of one holding museum in the Philippines database (MKB, PRM).
 - `geo.py` – geographic layer: country / world region / continent from the VMZ catalogue and reference texts.
+- `harvest_mkb_online.py`, `harvest_prm.py` – MKB (via PARC) and Pitt Rivers Museum harvests (staged).
+- `merge_staged.py` – merges staged harvests; `compare_models.py` – compares the image models.
 - `compare_refs.py` – compares two reference sets on the VMZ objects (coverage and name confirmation).
 - `make_overview.py` – the overview page for the challenge owners (`docs/index.html`).
 

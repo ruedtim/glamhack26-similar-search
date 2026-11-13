@@ -349,7 +349,7 @@ def main():
         groups, shown = Counter(), {}
         for j in top:
             nm = recs[j]["name"]
-            key = (clean_de(nm).lower() if recs[j]["source"] in ("mrz", "md") else clean(nm)) or nm.lower()
+            key = (clean_de(nm).lower() if recs[j]["source"] in ("mrz", "md", "mkb") else clean(nm)) or nm.lower()
             groups[key] += 1
             shown.setdefault(key, nm)
         knn_names = [(shown[k], c) for k, c in groups.most_common(6)]
@@ -380,7 +380,7 @@ def main():
         if r.get("flag") == "Figur":
             fig_terms.update(zs_de[:3])
             fig_en.update(zs_en[:2])
-            fig_nb.update(clean_de(recs[j]["name"]) if recs[j]["source"] in ("mrz", "md") else clean(recs[j]["name"])
+            fig_nb.update(clean_de(recs[j]["name"]) if recs[j]["source"] in ("mrz", "md", "mkb") else clean(recs[j]["name"])
                           for j in top[:5])
         if tt in de_pos and certain and calib:
             rk = 1 + int((s_de > s_de[de_pos[tt]]).sum())
@@ -567,7 +567,7 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
 </div></div></section>""")
 
     tn, hn = max(1, stats["type_n"]), max(1, stats["hyp_n"])
-    refmix = ", ".join(f"{ {'phil': 'Mapping Philippine Material Culture', 'mrz': 'Museum Rietberg', 'cma': 'Cleveland Museum of Art', 'si': 'Smithsonian', 'md': 'museum-digital'}.get(k, k)}: {v}"
+    refmix = ", ".join(f"{ {'phil': 'Mapping Philippine Material Culture', 'mrz': 'Museum Rietberg', 'cma': 'Cleveland Museum of Art', 'si': 'Smithsonian', 'md': 'museum-digital', 'mkb': 'Museum der Kulturen Basel (PARC)', 'prm': 'Pitt Rivers Museum'}.get(k, k)}: {v}"
                        for k, v in Counter(src[ref]).items())
     page = f"""<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>VMZ Namensvorschläge</title>

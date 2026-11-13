@@ -19,18 +19,18 @@ REPO = "https://github.com/ruedtim/glamhack26-similar-search"
 GROUPS = [
     ("Ähnliche Objekte liefern den Fachbegriff",
      "Die visuell ähnlichsten Objekte aus anderen Sammlungen tragen oft schon den passenden Namen.",
-     ["00145ad", "24472"]),
+     ["00145ad", "24472", "00276"]),
     ("Die «?»-Hypothese wird vom Foto gestützt",
      "Der unsichere Begriff gehört zu den 2 % der VMZ-Begriffe, die am besten zum Foto passen – "
      "oft tragen auch die ähnlichsten Objekte diesen Namen.",
-     ["11948.015", "o.Nr.4211", "o.Nr.4101"]),
+     ["38285", "20428", "11948.026"]),
     ("«Figur»: generischer Name, konkreter Vorschlag",
      "271 Objekte heissen im Katalog nur «Figur». Ähnliche Objekte anderer Museen tragen oft eine präzise "
      "Typbezeichnung – ein Vorschlag zur Prüfung, kein Ersatz für die Fachperson.",
-     ["10108", "15682", "12245"]),
+     ["10108", "12245", "o.Nr.3520"]),
     ("Gegenvorschlag, wo die Hypothese nicht passt",
      "Der Begriff im Namen passt kaum zum Foto, dafür andere Begriffe aus dem eigenen Katalog.",
-     ["o.Nr.5388", "08413.002", "o.Nr.2607"]),
+     ["o.Nr.5388", "08413.002"]),
 ]
 
 
@@ -50,7 +50,7 @@ def notes(o, res):
     nb = o["neighbours"][:5]                        # top-5 neighbours as shown on the card
     names5 = [n["name"].lower() for n in nb]
     inv = o["inv"]
-    if inv == "00273":
+    if inv in ("00273", "00276"):
         ww = [x for x in nn if "winnowing" in x["name"].lower()]
         n_ww = sum(x["count"] for x in ww)
         rest = [x["name"].split(" | ")[0] for x in nn if "winnowing" not in x["name"].lower()]
@@ -69,6 +69,15 @@ def notes(o, res):
         gw = sum(x["count"] for x in nn if "goldgewicht" in x["name"].lower())
         return (f"{'Alle 12' if gw == 12 else f'{gw} der 12'} ähnlichsten Objekte sind Goldgewichte aus dem "
                 f"Museum Rietberg: Wenn der Vergleichsbestand den Objekttyp enthält, sind die Treffer sehr genau.")
+    supported = {"38285": ("Pfeife", r"pfeife|pipe"), "20428": ("Gürtelschnalle", r"schnalle|buckle"),
+                 "11948.026": ("Pfeilspitze", r"pfeilspitze|arrowhead|arrow point")}
+    if inv in supported:
+        term, pat = supported[inv]
+        hit = [n["name"] for n in nb if re.search(pat, n["name"], re.I)]
+        k = len(hit)
+        return (f"«{term}» steht auf Rang {rank(o, term)} von {v} ({label_of(rank(o, term), res)}); {k} der 5 "
+                f"ähnlichsten Objekte {'heisst' if k == 1 else 'heissen'} {quoted(list(dict.fromkeys(hit))[:3])} – "
+                f"Bild-Text-Abgleich und Vergleichsobjekte stimmen überein.")
     if inv == "11948.015":
         k = sum("pfeilspitze" in n for n in names5)
         hold = sorted({n["holder"].split(",")[0] for n in nb if "pfeilspitze" in n["name"].lower()})
@@ -95,7 +104,8 @@ def notes(o, res):
                 + f" Der einheimische Name «susani» kommt im VMZ-Katalog bei weiteren Objekten vor – dort als {nat}.")
     fig = {"10108": (r"kraft|nkisi|nkondi|power", "Kraftfigur (nkisi)"),
            "15682": (r"ahnen|ancest|totok|hampatong", "Ahnenfigur"),
-           "12245": (r"buddha|bodhisattva|sakyamuni|shakyamuni", "Buddha-Figur")}
+           "12245": (r"buddha|bodhisattva|sakyamuni|shakyamuni", "Buddha-Figur"),
+           "o.Nr.3520": (r"puppe|doll", "Puppe")}
     if inv in fig:
         pat, label = fig[inv]
         hits = [x for x in nn if re.search(pat, x["name"], re.I)]
@@ -212,11 +222,13 @@ def main():
 <p class="lab">Ähnlichste Objekte in anderen Sammlungen</p>
 <div class="nbs">{''.join(nbs)}</div></div></article>"""
 
-    groups = "".join(
-        f'<section class="grp"><h3>{esc(t)}</h3><p class="gl">{esc(d)}</p>{"".join(card(objs[s]) for s in sigs)}</section>'
+    groups = "".join(   # heading + first card stay together (no orphaned heading at a page end)
+        f'<section class="grp"><div class="keep"><h3>{esc(t)}</h3><p class="gl">{esc(d)}</p>{card(objs[sigs[0]])}</div>'
+        f'{"".join(card(objs[s]) for s in sigs[1:])}</section>'
         for t, d, sigs in GROUPS)
     refmix = {"phil": "Mapping Philippine Material Culture", "mrz": "Museum Rietberg",
-              "cma": "Cleveland Museum of Art", "si": "Smithsonian", "md": "museum-digital (Berlin, Bremen)"}
+              "cma": "Cleveland Museum of Art", "si": "Smithsonian", "md": "museum-digital (Berlin, Bremen)",
+              "mkb": "Museum der Kulturen Basel (PARC)", "prm": "Pitt Rivers Museum"}
     sources = ", ".join(f"{refmix.get(k, k)} ({v})" for k, v in sorted(res["ref"].items(), key=lambda kv: -kv[1]))
     page = f"""<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -265,7 +277,7 @@ a{{color:var(--acc)}}
  .nbn{{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
  .nbh{{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
  .ex{{grid-template-columns:28mm 1fr}} .body p{{margin:3px 0}} .lab{{margin-top:5px!important}} ol.steps li{{margin:3px 0}}
- .grp{{break-before:page}} section.grp:first-of-type{{break-before:auto}} h2.learnh{{break-before:page}}}}
+ .keep{{break-inside:avoid}} h2.learnh{{break-before:page}}}}
 </style></head><body><main>
 <p class="kicker">GLAMhack 2026 · Challenge «To Be Renamed!» · Völkerkundemuseum der Universität Zürich</p>
 <h1>Bildähnlichkeit als Hilfe beim Umbenennen</h1>
