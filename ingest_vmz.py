@@ -12,6 +12,8 @@ Outputs in DATA_DIR:
 
 Usage: python ingest_vmz.py --xlsx X.xlsx --pdf A.pdf --pdf B.pdf --out DATA_DIR
        python ingest_vmz.py --xlsx X.xlsx --out DATA_DIR --catalog-only   # only rewrite vmz_catalog.jsonl
+       python ingest_vmz.py --xlsx X.xlsx --out DATA_DIR --images data/VMZ_figure --flag Figur
+              # photos named by inventory number (e.g. the 271 objects named only «Figur»)
 """
 import argparse
 import json
@@ -112,6 +114,8 @@ def main():
     ap.add_argument("--xlsx", required=True)
     ap.add_argument("--pdf", action="append", default=[])
     ap.add_argument("--catalog-only", action="store_true", help="only rewrite vmz_catalog.jsonl")
+    ap.add_argument("--images", help="folder with photos named <inventory number>.jpg (instead of --pdf)")
+    ap.add_argument("--flag", default="", help="label of the image-folder group, e.g. Figur")
     ap.add_argument("--out", required=True)
     ap.add_argument("--max-side", type=int, default=448)
     a = ap.parse_args()
@@ -128,6 +132,8 @@ def main():
     print(f"catalogue: {len(cat_rows)} rows, {len(cat)} inventory numbers")
     if a.catalog_only:
         return
+    if a.images:
+        return ingest_images(a, data, cat)
 
     objs = {}                                # sig -> record (objects on two PDFs are merged)
     no_photo = []
@@ -163,11 +169,41 @@ def main():
     print("catalogue match:", {h: sum(o["match"] == h for o in objs.values()) for h in ("exact", "main object", "none")})
 
     recs = [json.loads(l) for l in open(data / "records.jsonl", encoding="utf-8")]
-    kept = [r for r in recs if r["source"] != "vmz"]
+    kept = [r for r in recs if not (r["source"] == "vmz" and ".pdf#page=" in r.get("image_url", ""))]
     with open(data / "records.jsonl", "w", encoding="utf-8") as f:
         for r in kept + list(objs.values()):
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
     print(f"records.jsonl: {len(kept)} existing + {len(objs)} vmz")
+
+
+def ingest_images(a, data, cat):
+    """Photos named <inventory number>.jpg -> vmz records with flag a.flag (earlier records of the folder are replaced)."""
+    folder = Path(a.images)
+    recs = [json.loads(l) for l in open(data / "records.jsonl", encoding="utf-8")]
+    kept = [r for r in recs if not (r["source"] == "vmz" and r.get("image_url", "").startswith(folder.name + "/"))]
+    have = {r["id"] for r in kept}
+    new = []
+    for f in sorted(folder.glob("*.jp*g")):
+        sig = f.stem
+        if f"vmz:{sig}" in have:
+            print("  already imported from the PDFs, skipped:", sig)
+            continue
+        msig, how = match(sig, cat)
+        c = cat.get(msig, {})
+        fn = "img/vmz/" + re.sub(r"[^\w.-]+", "_", sig) + ".jpg"
+        im = Image.open(f).convert("RGB")
+        im.thumbnail((a.max_side, a.max_side))
+        im.save(data / fn, quality=90)
+        desc = " | ".join(x for x in (c.get("entry_book"), c.get("descr")) if x)
+        new.append(dict(source="vmz", id=f"vmz:{sig}", name=c.get("name", ""), title=c.get("name", ""), inv=sig,
+                        culture=c.get("ethnie") or c.get("geo_region") or c.get("world_region", ""),
+                        holder="Völkerkundemuseum der Universität Zürich", desc=desc[:700], url="",
+                        image_url=f"{folder.name}/{f.name}", licence="intern (GLAMhack-Stichprobe)", img=fn,
+                        flag=a.flag, cat_sig=msig or "", match=how, n_photos=1))
+    with open(data / "records.jsonl", "w", encoding="utf-8") as fh:
+        for r in kept + new:
+            fh.write(json.dumps(r, ensure_ascii=False) + "\n")
+    print(f"{folder.name}: {len(new)} objects (flag {a.flag!r}); records.jsonl: {len(kept) + len(new)}")
 
 
 if __name__ == "__main__":

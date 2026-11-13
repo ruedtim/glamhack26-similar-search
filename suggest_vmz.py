@@ -27,7 +27,7 @@ import openpyxl
 from PIL import Image
 
 from evaluate import clean
-from models import Embedder
+from models import Embedder, load_embeddings
 from geo import Geo, proximity
 from suggest import clean_de, rrf
 
@@ -39,8 +39,10 @@ RIGHTS_PUBLIC = ("Fotos der VMZ-Objekte: © Völkerkundemuseum der Universität 
                  "Museum of Art und Smithsonian (CC0), Museum Rietberg (CC BY-SA), via museum-digital: "
                  "Ethnologisches Museum, Staatliche Museen zu Berlin (CC BY-NC-SA) und Übersee-Museum Bremen "
                  "(CC BY-SA), Mapping Philippine Material Culture (© die besitzenden Museen) – Miniaturen nur zum "
-                 "Vergleich, mit Link zur Quelle. Texttreffer: Museum der Kulturen Basel, Sammlung Europa "
-                 "(data.bs.ch, CC BY 4.0).")
+                 "Vergleich, mit Link zur Quelle. Museum der Kulturen Basel (auch via PARC, Universität Basel): "
+                 "Bilder mit Einverständnis des MKB, Quellennachweis «Museum der Kulturen Basel». Pitt Rivers "
+                 "Museum: nur Name und Link, die Bilder werden aus Rechtegründen nicht gezeigt. "
+                 "Texttreffer: Museum der Kulturen Basel, Sammlung Europa (data.bs.ch, CC BY 4.0).")
 CATALOG_PUBLIC = ("Katalogdaten ohne Sammler, Herkunft, Eingangsbuch und interne Notizen; Beschreibungen nur für "
                   "Erwerbungen vor 1980 und ohne Sätze zu Personen, Erwerb oder Wert.")
 MT_MODEL = "Helsinki-NLP/opus-mt-de-en"
@@ -147,6 +149,18 @@ def matches(term, en, names):
     return False
 
 
+NO_PUBLIC_IMAGES = re.compile(r"Pitt Rivers")       # PRM: online publication needs a PRM licence
+PUBLIC_OK = re.compile(r"Kulturen Basel")             # MKB: publication approved by the MKB (13.11.2026)
+
+
+def can_publish(r):
+    """May the image of this reference object be shown on the public pages?"""
+    holder = r.get("holder") or ""
+    if PUBLIC_OK.search(holder):
+        return True
+    return r.get("publish_image", True) is not False and not NO_PUBLIC_IMAGES.search(holder)
+
+
 def wrrf(rank_lists, weights, k=60):
     """Weighted reciprocal rank fusion."""
     score = defaultdict(float)
@@ -227,6 +241,8 @@ def main():
     ap.add_argument("--min-count", type=int, default=3, help="min. frequency of a term in the VMZ catalogue")
     ap.add_argument("--records", help="records file (default DATA_DIR/records.jsonl); an older, shorter "
                                       "records file uses the first rows of the embeddings")
+    ap.add_argument("--text-model", default="siglip2", help="SigLIP 2 variant for neighbours and terms "
+                                                             "(siglip2 = base, siglip2_so400m = large)")
     ap.add_argument("--dino-weight", type=float, default=0.25,
                     help="weight of DINOv2 in the rank fusion (SigLIP 2 = 1); 0.25 was best for naming, 1.0 clearly worse")
     ap.add_argument("--hub-max", type=int, default=10,
@@ -244,11 +260,7 @@ def main():
         for r in recs:
             if r["source"] == "md" and r["id"] in places and not r.get("culture"):
                 r["culture"] = "; ".join(places[r["id"]][0] + places[r["id"]][1])
-    E = {m: np.load(data / f"emb_{m}.npy") for m in ["siglip2", "dinov2"]}
-    if any(len(v) != len(recs) for v in E.values()):
-        ids = json.load(open(data / "ids.json"))
-        assert ids[:len(recs)] == [r["id"] for r in recs], "re-run embed.py after harvesting / ingest_vmz.py"
-        E = {m: v[:len(recs)] for m, v in E.items()}
+    E = {m: load_embeddings(data, m, recs) for m in [a.text_model, "dinov2"]}
     cat = [json.loads(l) for l in open(data / "vmz_catalog.jsonl", encoding="utf-8")]
     by_sig = {}
     for c in cat:
@@ -268,7 +280,7 @@ def main():
     terms_q = {i: name_terms(recs[i]["name"]) for i in q_idx}
     hyp_vocab = sorted({t for ts in terms_q.values() for t, _ in ts})
     tr = translate(de_vocab + hyp_vocab, data / "vmz_vocab_en.json")
-    emb = Embedder("siglip2")
+    emb = Embedder(a.text_model)
     T_de = emb.texts([EN_TEMPLATE.format(tr[v]) for v in de_vocab])
     T_en = emb.texts([EN_TEMPLATE.format(v) for v in en_vocab])
     T_h = emb.texts([EN_TEMPLATE.format(tr[v]) for v in hyp_vocab])
@@ -277,7 +289,7 @@ def main():
           f"terms in current names {len(hyp_vocab)}")
     # hubness correction: subtract half of each term's mean similarity over all images (reference + VMZ);
     # 0.5 was the better compromise between specific and generic terms in the VMZ test
-    allimg = E["siglip2"][np.concatenate([ref, q_idx])]
+    allimg = E[a.text_model][np.concatenate([ref, q_idx])]
     b_de, b_en, b_h = (0.5 * (allimg @ T.T).mean(0) for T in (T_de, T_en, T_h))
     de_pos = {t: k for k, t in enumerate(de_vocab)}
     h_pos = {t: k for k, t in enumerate(hyp_vocab)}
@@ -294,6 +306,7 @@ def main():
 
     # ---------------------------------------------------------------- per object
     rows, stats = [], Counter(type_ranks=[])
+    fig_terms, fig_en, fig_nb = Counter(), Counter(), Counter()     # summary for the objects named only «Figur»
     top1_sims = []
     # neighbour candidates per photo and model (exact duplicates dropped)
     cand = {}
@@ -309,8 +322,10 @@ def main():
     ref_geo = {j: g.ref(recs[j]) for j in ref}
     # hubs: reference objects that land in the top 5 of very many VMZ photos (e.g. small glass fragments
     # of the Freer Gallery) carry no information about a single object -> hidden
-    weights = [1.0 if m == "siglip2" else a.dino_weight for m in E]
-    freq = Counter(j for i in q_idx for j in wrrf([cand[i][m][0][:60] for m in E], weights)[:5])
+    weights = [1.0 if m == a.text_model else a.dino_weight for m in E]
+    # measured on the mixed «?»/quotes sample only: in the «Figur» group, figure-type neighbours are expected
+    hub_q = [i for i in q_idx if recs[i].get("flag") != "Figur"]
+    freq = Counter(j for i in hub_q for j in wrrf([cand[i][m][0][:60] for m in E], weights)[:5])
     hubs = {j for j, c in freq.items() if c >= a.hub_max}
     stats["hubs"], stats["hub_max"] = len(hubs), a.hub_max
     print(f"hidden hubs (top 5 of >= {a.hub_max} photos): {len(hubs)}: "
@@ -318,10 +333,10 @@ def main():
 
     for i in q_idx:
         r = recs[i]
-        e = E["siglip2"][i]
+        e = E[a.text_model][i]
         ranks = [[j for j in cand[i][m][0] if j not in hubs][:60] for m in E]
-        sims = cand[i]["siglip2"][1]
-        top1_sims.append(sims[ranks[list(E).index("siglip2")][0]])
+        sims = cand[i][a.text_model][1]
+        top1_sims.append(sims[ranks[list(E).index(a.text_model)][0]])
         top = wrrf(ranks, weights)[:a.k]
         # second layer: the visually most similar objects (deeper candidate list) from the same world region
         c = by_sig.get(r.get("cat_sig") or "", {})
@@ -330,7 +345,7 @@ def main():
         if q_geo["region"] or q_geo["iso"]:
             deep = wrrf([[j for j in cand[i][m][0] if j not in hubs] for m in E], weights)
             top_geo = [j for j in deep if proximity(q_geo, ref_geo[j]) >= 2][:a.k]
-        geo_sims = {j: cand[i]["siglip2"][1].get(j) for j in top_geo}
+        geo_sims = {j: cand[i][a.text_model][1].get(j) for j in top_geo}
         groups, shown = Counter(), {}
         for j in top:
             nm = recs[j]["name"]
@@ -361,14 +376,20 @@ def main():
         # proxy statistics: is the type term of the current name (if certain) among the top VMZ terms?
         tt = type_term(r["name"])
         certain = bool(terms_q[i]) and terms_q[i][0][0] == tt and terms_q[i][0][1] == ""
-        if tt in de_pos and certain:
+        calib = r.get("flag") != "Figur"          # calibration only on the «?» / quotation-mark sample
+        if r.get("flag") == "Figur":
+            fig_terms.update(zs_de[:3])
+            fig_en.update(zs_en[:2])
+            fig_nb.update(clean_de(recs[j]["name"]) if recs[j]["source"] in ("mrz", "md") else clean(recs[j]["name"])
+                          for j in top[:5])
+        if tt in de_pos and certain and calib:
             rk = 1 + int((s_de > s_de[de_pos[tt]]).sum())
             stats["type_n"] += 1
             stats["type_top8"] += rk <= 8
             stats["type_sup"] += rk <= sup
             stats["type_pos"] += sup < rk <= pos
             stats["type_ranks"] += [rk]
-        if len(top_geo) >= 5:     # does the geographic layer confirm names more often than the visual one?
+        if len(top_geo) >= 5 and calib:   # does the geographic layer confirm names more often than the visual one?
             n1, n2 = [recs[j]["name"] for j in top[:5]], [recs[j]["name"] for j in top_geo[:5]]
             if tt in tr and certain:
                 stats["geo_type_n"] += 1
@@ -379,8 +400,8 @@ def main():
                     stats["geo_hyp_n"] += 1
                     stats["geo_hyp_l1"] += matches(t, tr[t], n1)
                     stats["geo_hyp_l2"] += matches(t, tr[t], n2)
-        stats["geo_with_region"] += bool(q_geo["region"] or q_geo["iso"])
-        stats["geo_with_layer"] += len(top_geo) >= 5
+        stats["geo_with_region"] += calib and bool(q_geo["region"] or q_geo["iso"])
+        stats["geo_with_layer"] += calib and len(top_geo) >= 5
         for t, mark, rank in term_ranks:
             if mark == "?":
                 stats["hyp_n"] += 1
@@ -406,6 +427,9 @@ def main():
           f"{stats['geo_with_layer']}; type term in top-5 names {stats['geo_type_l1']} visual vs {stats['geo_type_l2']} "
           f"regional (n={stats['geo_type_n']}); «?» hypotheses {stats['geo_hyp_l1']} vs {stats['geo_hyp_l2']} "
           f"(n={stats['geo_hyp_n']})")
+    if fig_terms:
+        print("«Figur» objects – most frequent VMZ terms (top 3 each):", fig_terms.most_common(15))
+        print("«Figur» objects – most frequent neighbour names (top 5 each):", fig_nb.most_common(12))
     print(f"objects with native name: {sum(bool(natives(x['cat'].get('native'))) for x in rows)}, "
           f"with catalogue matches for it: {sum(bool(x['nat']) for x in rows)}")
 
@@ -423,6 +447,10 @@ def main():
            "sup": sup, "pos": pos,
            "stats": {k: (v if not isinstance(v, list) else int(np.median(v)) if v else None)
                      for k, v in stats.items()},
+           "groups": dict(Counter(recs[i].get("flag") or "-" for i in q_idx)),
+           "figures": {"n": sum(recs[i].get("flag") == "Figur" for i in q_idx),
+                       "vmz_terms": fig_terms.most_common(25), "en_terms": fig_en.most_common(15),
+                       "neighbour_names": fig_nb.most_common(25)},
            "objects": []}
     for x, s1 in zip(rows, top1_sims):
         r = recs[x["i"]]
@@ -436,6 +464,7 @@ def main():
             "neighbour_names": [{"name": nm, "count": k} for nm, k in x["knn"]],
             "native_matches": [{"native": nn, "term": t, "count": k} for nn, t, k in x["nat"]],
             "neighbours": [{"id": recs[j]["id"], "name": recs[j]["name"], "holder": recs[j].get("holder", ""),
+                            "publish_image": can_publish(recs[j]),
                             "culture": recs[j].get("culture", ""), "url": recs[j]["url"], "img": recs[j]["img"],
                             "licence": recs[j].get("licence", ""), "sim": round(x["sims"].get(j, 0), 3)}
                            for j in x["top"][:8]],
@@ -473,9 +502,13 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
         qimg = thumb(data / r["img"], out / "img" / f"q_{safe}.jpg", 320, done)
         def card(j, sim, badge=""):
             rj = recs[j]
-            t = thumb(data / rj["img"], out / "img" / ("r_" + re.sub(r"[^\w.-]+", "_", rj["id"]) + ".jpg"), 150, done)
+            if a.public and not can_publish(rj):                   # rights: name + link only, no image
+                pic = '<div class="noimg">Bild nicht veröffentlicht – Link zur Quelle</div>'
+            else:
+                t = thumb(data / rj["img"], out / "img" / ("r_" + re.sub(r"[^\w.-]+", "_", rj["id"]) + ".jpg"), 150, done)
+                pic = f'<img src="{t}" alt="" loading="lazy">'
             return (f'<a class="c" href="{esc(rj["url"])}" target="_blank" rel="noopener">'
-                    f'<img src="{t}" alt="" loading="lazy"><b>{esc(rj["name"][:70])}</b>'
+                    f'{pic}<b>{esc(rj["name"][:70])}</b>'
                     f'<small>{esc((rj.get("holder") or "")[:45])}{" · " + esc(rj["culture"][:30]) if rj.get("culture") else ""}'
                     f'{f" · {sim:.2f}" if sim else ""}</small>{f"<small class=geo>{badge}</small>" if badge else ""}</a>')
 
@@ -559,10 +592,14 @@ details.cat{{font-size:11px;color:var(--mut)}} details.cat summary{{cursor:point
 details.cat dl{{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;margin:4px 0}} details.cat dt{{font-weight:600}}
 details.cat dd{{margin:0;color:var(--fg);white-space:pre-line}}
 .c small.geo{{color:var(--acc2);font-weight:600}}
+.noimg{{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;
+color:var(--mut);background:var(--chip);border-radius:4px;padding:6px}}
 @media (max-width:600px){{.q{{width:100%}}}}
 </style></head><body>
-<h1>Namensvorschläge für VMZ-Objekte mit «?» oder Anführungszeichen (PoC)</h1>
-<div class="lead"><p>{n} Objekte aus der GLAMhack-Stichprobe des Völkerkundemuseums der Universität Zürich.
+<h1>Namensvorschläge für VMZ-Objekte mit unsicheren oder generischen Namen (PoC)</h1>
+<div class="lead"><p>{n} Objekte aus der GLAMhack-Stichprobe des Völkerkundemuseums der Universität Zürich:
+{sum(1 for x in rows if '?' in (recs[x['i']].get('flag') or ''))} mit «?», {sum(1 for x in rows if '«' in (recs[x['i']].get('flag') or ''))} mit Anführungszeichen,
+{sum(1 for x in rows if recs[x['i']].get('flag') == 'Figur')} nur «Figur» genannt.
 Vergleichsbestand: {len(ref)} Objekte anderer Sammlungen ({refmix}). Bildähnlichkeit: SigLIP 2 + DINOv2 (gewichtete Rangfusion, DINOv2 mit Gewicht {a.dino_weight});
 Begriffe: SigLIP 2 Bild ↔ Text gegen {len(de_vocab)} Typbegriffe aus den Objektnamen des VMZ-Katalogs (≥ {a.min_count} Objekte),
 vorher maschinell ins Englische übersetzt (grau: die Übersetzung, mit der gerechnet wurde).</p>
@@ -582,7 +619,7 @@ die bei {stats['hub_max']} oder mehr Fotos unter den Top 5 wären («Hubs», z. 
 Vorschläge sind Hinweise – entscheiden muss die Fachperson.
 {RIGHTS_PUBLIC + ' ' + CATALOG_PUBLIC if a.public else 'Bilder und Katalogdaten: intern, nicht veröffentlichen.'}</small></p></div>
 <div class="bar"><input id="q" type="search" placeholder="Suche: Inventarnummer, Name, Begriff, Region …" aria-label="Suche">
-<select id="flag" aria-label="Markierung"><option value="">«?» und Anführungszeichen</option><option value="?">nur «?»</option><option value="«»">nur Anführungszeichen</option></select>
+<select id="flag" aria-label="Markierung"><option value="">alle Gruppen</option><option value="?">nur «?»</option><option value="«»">nur Anführungszeichen</option><option value="Figur">nur «Figur» (generischer Name)</option></select>
 <select id="hyp" aria-label="Hypothese"><option value="">alle Hypothesen</option><option value="sup">«?»-Hypothese gestützt</option><option value="pos">«?»-Hypothese möglich</option><option value="no">«?»-Hypothese nicht gestützt</option></select>
 <small id="count"></small></div>
 {''.join(blocks)}

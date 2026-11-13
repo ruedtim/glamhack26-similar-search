@@ -4,8 +4,10 @@ GPU_SHARE (env var, 0 < x <= 1, default 1): throttles the load via a duty cycle.
 process pauses so the GPU is busy only ~GPU_SHARE of the time (less heat and fan noise). With
 GPU_SHARE < 1, the CPU threads are halved as well.
 """
+import json
 import os
 import time
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -14,12 +16,28 @@ from transformers import AutoImageProcessor, AutoModel, AutoProcessor
 
 MODELS = {
     "siglip2": "google/siglip2-base-patch16-224",
+    "siglip2_so400m": "google/siglip2-so400m-patch14-224",   # larger variant (test 13.11.2026), ~4.5 GB
     "dinov2": "facebook/dinov2-base",
 }
 DEV = "mps" if torch.backends.mps.is_available() else "cpu"
 GPU_SHARE = min(1.0, max(0.05, float(os.environ.get("GPU_SHARE", "1.0"))))
 if GPU_SHARE < 1.0:
     torch.set_num_threads(max(1, (os.cpu_count() or 2) // 2))
+
+
+def load_embeddings(data, name, recs):
+    """Embeddings of model `name`, aligned to `recs` by record id (ids_<name>.json, fallback ids.json)."""
+    data = Path(data)
+    emb = np.load(data / f"emb_{name}.npy")
+    f = data / f"ids_{name}.json"
+    ids = json.load(open(f if f.exists() else data / "ids.json"))
+    if len(ids) != len(emb):
+        raise SystemExit(f"emb_{name}.npy and its id list differ in length – re-run embed.py --models {name}")
+    pos = {i: k for k, i in enumerate(ids)}
+    missing = [r["id"] for r in recs if r["id"] not in pos]
+    if missing:
+        raise SystemExit(f"{len(missing)} records have no {name} embedding – run embed.py --models {name}")
+    return emb[[pos[r["id"]] for r in recs]]
 
 
 def _throttle(t0):
@@ -52,7 +70,7 @@ class Embedder:
         self.name = name
         mid = MODELS[name]
         self.model = AutoModel.from_pretrained(mid).eval().to(DEV)
-        if name == "siglip2":
+        if name.startswith("siglip2"):
             self.proc = AutoProcessor.from_pretrained(mid)
         else:
             # no resize+center-crop: we pad to square ourselves and resize to 224
@@ -66,7 +84,7 @@ class Embedder:
             t0 = time.perf_counter()
             ims = [pad_square(Image.open(p)) for p in paths[i:i + bs]]
             inp = self.proc(images=ims, return_tensors="pt").to(DEV)
-            if self.name == "siglip2":
+            if self.name.startswith("siglip2"):
                 f = self.model.get_image_features(**inp)
                 if not torch.is_tensor(f):
                     f = f.pooler_output
@@ -79,7 +97,7 @@ class Embedder:
 
     @torch.no_grad()
     def texts(self, texts, bs=32):
-        assert self.name == "siglip2", "text embeddings only for SigLIP 2"
+        assert self.name.startswith("siglip2"), "text embeddings only for SigLIP 2"
         out = []
         for i in range(0, len(texts), bs):
             t0 = time.perf_counter()

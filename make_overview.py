@@ -24,6 +24,10 @@ GROUPS = [
      "Der unsichere Begriff gehört zu den 2 % der VMZ-Begriffe, die am besten zum Foto passen – "
      "oft tragen auch die ähnlichsten Objekte diesen Namen.",
      ["11948.015", "o.Nr.4211", "o.Nr.4101"]),
+    ("«Figur»: generischer Name, konkreter Vorschlag",
+     "271 Objekte heissen im Katalog nur «Figur». Ähnliche Objekte anderer Museen tragen oft eine präzise "
+     "Typbezeichnung – ein Vorschlag zur Prüfung, kein Ersatz für die Fachperson.",
+     ["10108", "15682", "12245"]),
     ("Gegenvorschlag, wo die Hypothese nicht passt",
      "Der Begriff im Namen passt kaum zum Foto, dafür andere Begriffe aus dem eigenen Katalog.",
      ["o.Nr.5388", "08413.002", "o.Nr.2607"]),
@@ -72,8 +76,10 @@ def notes(o, res):
                 f"«Pfeilspitze …» ({', '.join(hold)}) – Bild-Text-Abgleich und Vergleichsobjekte stimmen überein.")
     if inv == "o.Nr.4211":
         k = sum("haarnadel" in n for n in names5)
-        return (f"«Haarnadel» steht auf Rang {rank(o, 'Haarnadel')} von {v}; {k} der 5 ähnlichsten Objekte sind "
-                f"Haarnadeln aus dem Museum Rietberg.")
+        return (f"«Haarnadel» steht auf Rang {rank(o, 'Haarnadel')} von {v}"
+                + (f"; {k} der 5 ähnlichsten Objekte {'ist eine Haarnadel' if k == 1 else 'sind Haarnadeln'} "
+                   f"aus dem Museum Rietberg." if k else
+                   f"; die ähnlichsten Objekte heissen {quoted(list(dict.fromkeys(n['name'] for n in nb))[:3])}."))
     if inv == "o.Nr.4101":
         n_h = sum(x["count"] for x in nn if re.search(r"harpoon|harpune", x["name"].lower()))
         top5 = Counter(re.sub(r"^[A-Z]\d+/?\d*\s+", "", n["name"]) for n in nb)
@@ -87,6 +93,20 @@ def notes(o, res):
         return (f"«Bettüberwurf» steht auf Rang {rank(o, 'Bettüberwurf')} von {v}."
                 + (f" Das ähnlichste Objekt ist ein «{suz['name']}» ({suz['holder']})." if suz else "")
                 + f" Der einheimische Name «susani» kommt im VMZ-Katalog bei weiteren Objekten vor – dort als {nat}.")
+    fig = {"10108": (r"kraft|nkisi|nkondi|power", "Kraftfigur (nkisi)"),
+           "15682": (r"ahnen|ancest|totok|hampatong", "Ahnenfigur"),
+           "12245": (r"buddha|bodhisattva|sakyamuni|shakyamuni", "Buddha-Figur")}
+    if inv in fig:
+        pat, label = fig[inv]
+        hits = [x for x in nn if re.search(pat, x["name"], re.I)]
+        k = sum(x["count"] for x in hits)
+        where = ", ".join(v for v in (o.get("culture"), o.get("country")) if v and v != "(ohne Zuordnung)")
+        terms = ", ".join(t["term"] for t in o["vmz_terms"][:3])
+        named = quoted(x['name'].split(' | ')[0] for x in hits[:2])
+        lead = (f"{k} der 12 ähnlichsten Objekte {'heisst' if k == 1 else 'heissen'} {named}" if k else
+                "Unter den 12 ähnlichsten Objekten ist keines mit präziser Bezeichnung")
+        return (f"Im Katalog nur «Figur»{f' ({where})' if where else ''}. {lead}; passende VMZ-Begriffe: {terms}. "
+                f"Vorschlag zur Prüfung: «{label}».")
     if inv == "o.Nr.5388":
         arm = [t for t in o["en_terms"] if re.search(r"bracelet|bangle|wristlet|armlet|anklet", t)]
         ring = sum(x["count"] for x in nn if re.search(r"armring|armreif|bracelet|bangle", x["name"].lower()))
@@ -102,10 +122,15 @@ def notes(o, res):
                    if fin else "; die ähnlichsten Objekte sind figürliche Anhänger und Köpfe."))
     if inv == "o.Nr.2607":
         bell = [t for t in o["en_terms"] if "bell" in t]
-        return (f"«Rassel» nur Rang {rank(o, 'Rassel')} von {v}. Unter den fünf passendsten VMZ-Begriffen sind "
+        rk = rank(o, 'Rassel')
+        return (f"«Rassel» Rang {rk} von {v} ({label_of(rk, res)}). Unter den fünf passendsten VMZ-Begriffen sind "
                 f"Messingglocke, Kuhglocke, Schelle und Glocke" + (f", englisch {quoted(bell[:2])}" if bell else "")
                 + ": eher eine Glocke?")
     raise KeyError(inv)
+
+
+def label_of(r, res):
+    return {"sup": "gestützt", "pos": "möglich", "no": "nicht gestützt"}[status(r, res)]
 
 
 def status(r, res):
@@ -141,11 +166,25 @@ def main():
     tn, hn = max(1, st.get("type_n", 0)), max(1, st.get("hyp_n", 0))
     n_ref = sum(res["ref"].values())
     label = {"sup": "gestützt", "pos": "möglich", "no": "nicht gestützt"}
+    g = res.get("groups", {})
+    n_q = sum(v for k, v in g.items() if "?" in k)
+    n_quote = sum(v for k, v in g.items() if "«" in k)
+    grp_text = f"{n_q} mit «?», {n_quote} mit Anführungszeichen" + (f", {g['Figur']} nur «Figur» genannt" if g.get("Figur") else "")
 
     def pct(a, b):
         return f"{a / b:.0%}" if b else "–"
     better = st.get("geo_type_l2", 0) + st.get("geo_hyp_l2", 0) > st.get("geo_type_l1", 0) + st.get("geo_hyp_l1", 0)
     geo_word = "eine hilfreiche zweite Sicht" if better else "eine zusätzliche Sicht, kein besserer Namensgeber"
+    fig = res.get("figures") or {}
+    generic = re.compile(r"^(figure|figur|figurine|male figure|female figure|männliche figur|weibliche figur|statuette|"
+                         r"statue|schnitzerei|seated figure|standing figure|sculpture|carving|figurine head)$", re.I)
+    spec = [f"«{nm}» ({c})" for nm, c in fig.get("neighbour_names", []) if nm and not generic.match(nm.strip())][:6]
+    vt = [f"«{t}» ({c})" for t, c in fig.get("vmz_terms", [])
+          if not re.match(r"^(holz|bronze|messing|metall|stein|marmor|ton|porzellan)", t, re.I)][:6]
+    fig_bullet = (f"<li><b>«Figur» lässt sich oft präzisieren.</b> Bei den {fig['n']} «Figur»-Objekten heissen die "
+                  f"ähnlichsten Objekte am häufigsten {', '.join(spec)}; das Bild-Text-Modell schlägt aus dem "
+                  f"VMZ-Vokabular vor allem {', '.join(vt)} vor (Materialbegriffe ausgenommen).</li>"
+                  if fig.get("n") else "")
 
     def card(o):
         safe = re.sub(r"[^\w.-]+", "_", o["inv"])
@@ -156,9 +195,13 @@ def main():
             for t in o["terms"] if t["mark"] == "?")
         nbs = []
         for nb in o["neighbours"][:5]:
-            t = img(data / nb["img"], out / "img" / ("r_" + re.sub(r"[^\w.-]+", "_", nb["id"]) + ".jpg"), 240)
+            if nb.get("publish_image") is False:        # rights: name + link only
+                pic = '<span class="noimg">Bild nicht veröffentlicht</span>'
+            else:
+                t = img(data / nb["img"], out / "img" / ("r_" + re.sub(r"[^\w.-]+", "_", nb["id"]) + ".jpg"), 240)
+                pic = f'<img src="{t}" alt="" loading="lazy">'
             nbs.append(f'<a class="nb" href="{esc(nb["url"])}" target="_blank" rel="noopener">'
-                       f'<img src="{t}" alt="" loading="lazy"><span class="nbn">{esc(nb["name"][:48])}</span>'
+                       f'{pic}<span class="nbn">{esc(nb["name"][:48])}</span>'
                        f'<span class="nbh">{esc(short_holder(nb["holder"]))}</span></a>')
         place = ", ".join(x for x in (o.get("culture"), o.get("country")) if x and x != "(ohne Zuordnung)")
         return f"""<article class="ex">
@@ -205,6 +248,7 @@ ol.steps{{padding-left:20px;max-width:820px}} ol.steps li{{margin:6px 0}}
 .nb{{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:inherit;font-size:12px;line-height:1.3}}
 .nb img{{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:6px}}
 .nbn{{font-weight:600}} .nbh{{color:var(--mut)}}
+.noimg{{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--mut);background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:6px}}
 ul.learn li{{margin:6px 0}} .links{{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0}}
 .links a{{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 14px;color:inherit;text-decoration:none;font-weight:600}}
 .links a:hover{{border-color:var(--acc)}}
@@ -225,11 +269,11 @@ a{{color:var(--acc)}}
 </style></head><body><main>
 <p class="kicker">GLAMhack 2026 · Challenge «To Be Renamed!» · Völkerkundemuseum der Universität Zürich</p>
 <h1>Bildähnlichkeit als Hilfe beim Umbenennen</h1>
-<p class="lead">Für {res['n']} Objekte, deren Namen ein «?» oder Anführungszeichen enthalten, haben wir die Fotos mit
+<p class="lead">Für {res['n']} Objekte mit unsicheren oder generischen Namen ({grp_text}) haben wir die Fotos mit
 {n_ref} Objekten aus anderen Sammlungen und mit {res['vocab']} Begriffen aus dem eigenen Katalog verglichen.
 Erste Resultate, Stand 13. November 2026.</p>
 <div class="figs">
-<div class="fig"><b>{res['n']}</b><span>Objekte mit Foto aus der Challenge-Stichprobe</span></div>
+<div class="fig"><b>{res['n']}</b><span>Objekte mit Foto aus den Challenge-Daten</span></div>
 <div class="fig"><b>{n_ref}</b><span>Vergleichsobjekte aus anderen Sammlungen</span></div>
 <div class="fig"><b>{st.get('hyp_sup', 0) / hn:.0%}</b><span>der {st.get('hyp_n', 0)} «?»-Hypothesen vom Foto klar gestützt</span></div>
 <div class="fig"><b>≈ 2 Min.</b><span>Rechenzeit für alle Objekte auf einem Laptop</span></div>
@@ -253,6 +297,7 @@ Erste Resultate, Stand 13. November 2026.</p>
 <li><b>«Gestützt» ist ein starkes Indiz</b> (zufällig nur 2 %), <b>«nicht gestützt» nur ein schwaches</b>: Auch sichere Begriffe aus den aktuellen Namen sind nur bei {st.get('type_sup', 0) / tn:.0%} gestützt, besonders seltene Fachwörter fallen durch.</li>
 <li><b>Deutsche Fachbegriffe müssen übersetzt werden.</b> Mit Übersetzung landet der richtige Typbegriff im Mittel auf Rang {st.get('type_ranks') or '–'} statt 809 (von {res['vocab']}). Seltene Wörter wie «Worfel» kennt aber auch die Übersetzung nicht.</li>
 <li><b>Geografische Nähe ist {geo_word}.</b> Bei {st.get('geo_with_layer', 0)} Objekten gibt es mindestens fünf visuell ähnliche Objekte aus derselben Weltregion. Deren Namen bestätigen den Typbegriff in {pct(st.get('geo_type_l2', 0), st.get('geo_type_n', 0))} der Fälle (rein visuell: {pct(st.get('geo_type_l1', 0), st.get('geo_type_n', 0))}), die «?»-Hypothese in {pct(st.get('geo_hyp_l2', 0), st.get('geo_hyp_n', 0))} (rein visuell: {pct(st.get('geo_hyp_l1', 0), st.get('geo_hyp_n', 0))}). Die regionale Liste zeigt dafür Vergleichsstücke aus demselben kulturellen Umfeld.</li>
+{fig_bullet}
 <li><b>Anführungszeichen markieren meist Bildtitel</b> («Bild: „Abendmahl“»). Dort trägt die Methode nur Technikbegriffe bei (Malerei auf Reispapier, Blockdruck).</li>
 <li><b>Ethnografische Sammlungen mit deutschen Typbezeichnungen bringen am meisten.</b> Vergleichsbestand: {esc(sources)}. 12317 zusätzliche CC0-Objekte aus Cleveland und Smithsonian machen die ähnlichsten Objekte deutlich näher (Asien 0.781 → 0.805, Amerika 0.823 → 0.850), die Namen der Nachbarn bestätigen den Typbegriff aber kaum häufiger (14 % → 16 %): Kunstmuseen benennen mit Titeln statt Objekttypen. Nur 3171 Objekte via museum-digital (Ethnologisches Museum Berlin, Übersee-Museum Bremen, Museum Europäischer Kulturen) heben die Bestätigung dagegen auf 20 % («?»-Hypothesen 8 % → 11 % → 14 %).</li>
 </ul>
@@ -265,7 +310,7 @@ Erste Resultate, Stand 13. November 2026.</p>
 </ul>
 
 <footer><p>Vorschläge sind Hinweise, keine Entscheidungen – entscheiden muss die Fachperson. Vergleichsbestände enthalten auch veraltete oder koloniale Bezeichnungen.</p>
-<p>Fotos der VMZ-Objekte: © Völkerkundemuseum der Universität Zürich. Vergleichsbilder als Miniaturen mit Link zur Quelle: Cleveland Museum of Art und Smithsonian (CC0), Museum Rietberg (CC BY-SA), via museum-digital: Ethnologisches Museum, Staatliche Museen zu Berlin (CC BY-NC-SA) und Übersee-Museum Bremen (CC BY-SA), Mapping Philippine Material Culture (© die besitzenden Museen). Code: <a href="{REPO}">{REPO.replace('https://', '')}</a>.</p></footer>
+<p>Fotos der VMZ-Objekte: © Völkerkundemuseum der Universität Zürich. Vergleichsbilder als Miniaturen mit Link zur Quelle: Cleveland Museum of Art und Smithsonian (CC0), Museum Rietberg (CC BY-SA), via museum-digital: Ethnologisches Museum, Staatliche Museen zu Berlin (CC BY-NC-SA) und Übersee-Museum Bremen (CC BY-SA), Mapping Philippine Material Culture (© die besitzenden Museen). Museum der Kulturen Basel (auch via PARC, Universität Basel): Bilder mit Einverständnis des MKB, Quellennachweis «Museum der Kulturen Basel». Pitt Rivers Museum: nur Name und Link, Bilder aus Rechtegründen nicht gezeigt. Code: <a href="{REPO}">{REPO.replace('https://', '')}</a>.</p></footer>
 </main></body></html>"""
     (out / "index.html").write_text(page, encoding="utf-8")
     print("wrote", out / "index.html", "with", sum(len(s) for _, _, s in GROUPS), "examples")

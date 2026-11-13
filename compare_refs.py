@@ -18,6 +18,7 @@ from pathlib import Path
 
 import numpy as np
 
+from models import load_embeddings
 from suggest import rrf
 from suggest_vmz import matches, name_terms, type_term
 
@@ -32,8 +33,7 @@ def main():
     a = ap.parse_args()
     data = Path(a.data)
     recs = [json.loads(l) for l in open(data / "records.jsonl", encoding="utf-8")]
-    E = {m: np.load(data / f"emb_{m}.npy") for m in ["siglip2", "dinov2"]}
-    assert all(len(v) == len(recs) for v in E.values()), "re-run embed.py first"
+    E = {m: load_embeddings(data, m, recs) for m in ["siglip2", "dinov2"]}
     tr = json.load(open(data / "vmz_vocab_en.json", encoding="utf-8"))
     cat = {}
     for l in open(data / "vmz_catalog.jsonl", encoding="utf-8"):
