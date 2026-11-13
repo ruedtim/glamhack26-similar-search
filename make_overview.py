@@ -20,8 +20,9 @@ GROUPS = [
      "Die visuell ähnlichsten Objekte aus anderen Sammlungen tragen oft schon den passenden Namen.",
      ["00273", "00145ad"]),
     ("Die «?»-Hypothese wird vom Foto gestützt",
-     "Der unsichere Begriff im Namen gehört zu den 2 % der VMZ-Begriffe, die am besten zum Foto passen.",
-     ["11948.019", "o.Nr.4101", "24472"]),
+     "Der unsichere Begriff gehört zu den 2 % der VMZ-Begriffe, die am besten zum Foto passen – "
+     "oft tragen auch die ähnlichsten Objekte diesen Namen.",
+     ["o.Nr.4211", "o.Nr.4101", "24472"]),
     ("Gegenvorschlag, wo die Hypothese nicht passt",
      "Der Begriff im Namen passt kaum zum Foto, dafür andere Begriffe aus dem eigenen Katalog.",
      ["o.Nr.5388", "08413.002", "o.Nr.2607"]),
@@ -32,35 +33,60 @@ def rank(o, term):
     return next((t["rank"] for t in o["terms"] if t["term"] == term), None)
 
 
+def quoted(names):
+    return ", ".join(f"«{n}»" for n in names)
+
+
 def notes(o, res):
-    """Hand-written reading of each example; numbers are filled in from the results."""
+    """Hand-written reading of each example; numbers and names are filled in from the results.
+    Re-read the sentences after a re-run with a different reference set."""
     v = res["vocab"]
-    nn = o["neighbour_names"]
-    ww = sum(x["count"] for x in nn if "winnowing" in x["name"].lower())
-    gw = sum(x["count"] for x in nn if "goldgewicht" in x["name"].lower())
-    others = ", ".join([t["term"] for t in o["vmz_terms"] if not t["term"].startswith("Pfeilspitze")][:3])
-    return {
-        "00273": f"Unter den 12 ähnlichsten Objekten sind {ww} Worfeln («Winnowing-Tray», «Winnowing basket»). "
-                 f"Das Bild-Text-Modell kennt das seltene Wort «Worfel» nicht (Rang {rank(o, 'Worfel')}), "
-                 f"die ähnlichen Objekte liefern den Begriff trotzdem.",
-        "00145ad": f"{'Alle 12' if gw == 12 else f'{gw} der 12'} ähnlichsten Objekte sind Goldgewichte aus dem Museum Rietberg: Wenn der "
-                   f"Vergleichsbestand den Objekttyp enthält, sind die Treffer sehr genau.",
-        "11948.019": f"«Pfeilspitze» steht auf Rang {rank(o, 'Pfeilspitze')} von {v} Begriffen. "
-                     f"Weitere passende VMZ-Begriffe: {others}.",
-        "o.Nr.4101": f"«Harpune» steht auf Rang {rank(o, 'Harpune')} von {v}; unter den ähnlichsten Objekten "
-                     f"sind Speere und eine Harpune.",
-        "24472": f"«Bettüberwurf» steht auf Rang {rank(o, 'Bettüberwurf')} von {v}. Der einheimische Name "
-                 f"«susani» kommt im VMZ-Katalog bei weiteren Objekten vor – dort als "
-                 f"{' und '.join('«' + m['term'] + '»' for m in o['native_matches'][:2])}.",
-        "o.Nr.5388": f"«Ornament» nur Rang {rank(o, 'Ornament')} von {v}. Der Bild-Text-Abgleich nennt "
-                     f"Armmanchette, Armstulpe und Papuaarmband (VMZ-Begriffe) sowie «bracelet» und «bangle»; "
-                     f"die ähnlichsten Objekte sind dagegen Bambusbehälter. Armschmuck prüfen.",
-        "08413.002": f"«Gefäss» nur Rang {rank(o, 'Gefäss')} von {v}. Der Bild-Text-Abgleich nennt Vogelkopf "
-                     f"und Tierkopf (VMZ-Begriffe) sowie «staff head» und «finial» (Stabaufsatz); die ähnlichsten "
-                     f"Objekte sind figürliche Anhänger und Köpfe.",
-        "o.Nr.2607": f"«Rassel» nur Rang {rank(o, 'Rassel')} von {v}. Unter den fünf passendsten VMZ-Begriffen "
-                     f"sind Messingglocke, Kuhglocke, Schelle und Glocke: eher eine Glocke?",
-    }[o["inv"]]
+    nn = o["neighbour_names"]                       # top-12 neighbours, grouped by name
+    nb = o["neighbours"][:5]                        # top-5 neighbours as shown on the card
+    names5 = [n["name"].lower() for n in nb]
+    inv = o["inv"]
+    if inv == "00273":
+        ww = [x for x in nn if "winnowing" in x["name"].lower()]
+        return (f"Unter den 12 ähnlichsten Objekten sind {sum(x['count'] for x in ww)} Worfeln "
+                f"({quoted(x['name'] for x in ww)}). Das Bild-Text-Modell kennt das seltene Wort «Worfel» nicht "
+                f"(Rang {rank(o, 'Worfel')}), die ähnlichen Objekte liefern den Begriff trotzdem.")
+    if inv == "00145ad":
+        gw = sum(x["count"] for x in nn if "goldgewicht" in x["name"].lower())
+        return (f"{'Alle 12' if gw == 12 else f'{gw} der 12'} ähnlichsten Objekte sind Goldgewichte aus dem "
+                f"Museum Rietberg: Wenn der Vergleichsbestand den Objekttyp enthält, sind die Treffer sehr genau.")
+    if inv == "o.Nr.4211":
+        k = sum("haarnadel" in n for n in names5)
+        return (f"«Haarnadel» steht auf Rang {rank(o, 'Haarnadel')} von {v}; {k} der 5 ähnlichsten Objekte sind "
+                f"Haarnadeln aus dem Museum Rietberg.")
+    if inv == "o.Nr.4101":
+        first = nb[0]
+        lead = (f"das ähnlichste Objekt ist eine «{first['name']}» ({first['holder'].replace('The ', '')})"
+                if "harpoon" in first["name"].lower() else "unter den ähnlichsten Objekten ist eine Harpune")
+        n_arrow = sum("arrow" in n for n in names5)
+        arrows = "" if not n_arrow else " und ein Pfeil" if n_arrow == 1 else f" und {n_arrow} Pfeile"
+        return f"«Harpune» steht auf Rang {rank(o, 'Harpune')} von {v}; {lead}, dazu Speere, eine Lanze{arrows}."
+    if inv == "24472":
+        suz = next((n for n in nb if "suzani" in n["name"].lower()), None)
+        nat = " und ".join("«" + m["term"] + "»" for m in o["native_matches"][:2])
+        return (f"«Bettüberwurf» steht auf Rang {rank(o, 'Bettüberwurf')} von {v}."
+                + (f" Das ähnlichste Objekt ist ein «{suz['name']}» ({suz['holder']})." if suz else "")
+                + f" Der einheimische Name «susani» kommt im VMZ-Katalog bei weiteren Objekten vor – dort als {nat}.")
+    if inv == "o.Nr.5388":
+        arm = [t for t in o["en_terms"] if re.search(r"bracelet|bangle|wristlet|armlet|anklet", t)]
+        return (f"«Ornament» nur Rang {rank(o, 'Ornament')} von {v}. Der Bild-Text-Abgleich nennt Armmanchette, "
+                f"Armstulpe und Papuaarmband (VMZ-Begriffe)" + (f" sowie {quoted(arm)}" if arm else "")
+                + "; die ähnlichsten Objekte sind dagegen Bambusbehälter. Armschmuck prüfen.")
+    if inv == "08413.002":
+        fin = sum("finial" in n["name"].lower() for n in o["neighbours"][:8])
+        return (f"«Gefäss» nur Rang {rank(o, 'Gefäss')} von {v}. Der Bild-Text-Abgleich nennt Vogelkopf und Tierkopf"
+                + (f"; unter den 8 ähnlichsten Objekten sind {fin} Stabaufsätze («Finial», Freer Gallery of Art)."
+                   if fin else "; die ähnlichsten Objekte sind figürliche Anhänger und Köpfe."))
+    if inv == "o.Nr.2607":
+        bell = [t for t in o["en_terms"] if "bell" in t]
+        return (f"«Rassel» nur Rang {rank(o, 'Rassel')} von {v}. Unter den fünf passendsten VMZ-Begriffen sind "
+                f"Messingglocke, Kuhglocke, Schelle und Glocke" + (f", englisch {quoted(bell[:2])}" if bell else "")
+                + ": eher eine Glocke?")
+    raise KeyError(inv)
 
 
 def status(r, res):
@@ -201,7 +227,7 @@ Erste Resultate, Stand 13. November 2026.</p>
 <li><b>«Gestützt» ist ein starkes Indiz</b> (zufällig nur 2 %), <b>«nicht gestützt» nur ein schwaches</b>: Auch sichere Begriffe aus den aktuellen Namen sind nur bei {st.get('type_sup', 0) / tn:.0%} gestützt, besonders seltene Fachwörter fallen durch.</li>
 <li><b>Deutsche Fachbegriffe müssen übersetzt werden.</b> Mit Übersetzung landet der richtige Typbegriff im Mittel auf Rang {st.get('type_ranks') or '–'} statt 809 (von {res['vocab']}). Seltene Wörter wie «Worfel» kennt aber auch die Übersetzung nicht.</li>
 <li><b>Anführungszeichen markieren meist Bildtitel</b> («Bild: „Abendmahl“»). Dort trägt die Methode nur Technikbegriffe bei (Malerei auf Reispapier, Blockdruck).</li>
-<li><b>Grösste Grenze ist die Abdeckung.</b> Der Vergleichsbestand ist noch klein und regional einseitig ({esc(sources)}). Er wird gerade um weitere offene Sammlungen erweitert (Cleveland: Indien/Tibet, Ozeanien, Amerika; Smithsonian: Asien, Afrika).</li>
+<li><b>Mehr Vergleichsobjekte heisst nicht automatisch bessere Namen.</b> Mit 12317 zusätzlichen CC0-Objekten aus Cleveland und Smithsonian ({esc(sources)}) sind die ähnlichsten Objekte deutlich näher (mittlere Ähnlichkeit 0.813 → 0.828; Asien 0.781 → 0.805, Amerika 0.823 → 0.850) und einzelne Beispiele viel besser (Suzani, Stabaufsätze, Harpune). Die Namen der Nachbarn bestätigen den Typbegriff aber kaum häufiger (15 % → 16 %): Kunstmuseen benennen mit Titeln statt Objekttypen. Am meisten bringen dürften ethnografische Sammlungen mit Typbezeichnungen.</li>
 </ul>
 
 <h2>Wie weiter</h2>

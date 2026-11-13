@@ -158,6 +158,54 @@ Outputs:
 - Running `suggest_vmz.py` without `--public` writes an internal variant with those excerpts to
   `vmz_review/` (gitignored).
 
+## Extended reference set: +12,317 CC0 objects (13.11.2026, afternoon)
+
+`harvest_more.py` adds two CC0 sources:
+- **Cleveland**: 7,477 objects from the departments Indian and Southeast Asian Art (incl. Tibet and
+  Nepal), Oceania, African Art, Art of the Americas and Islamic Art, plus samples of Korean, Chinese and
+  Japanese Art and Textiles.
+- **Smithsonian** (bulk metadata on the AWS Registry of Open Data, only media marked CC0): 4,840 objects
+  from Freer|Sackler, the National Museum of African Art and the National Museum of the American Indian.
+
+Not used:
+- NMNH Anthropology, whose open dump has no CC0 images;
+- Rietberg «Kamerun», whose open data has no image links.
+
+The reference set grows from 3,163 to 15,480 objects. `compare_refs.py` runs the same 748 VMZ objects
+against the old and the new set (top-5 neighbours, rank fusion):
+
+| | old set | new set |
+|---|---|---|
+| similarity of the nearest neighbour (median) | 0.813 | 0.828 |
+| nearest neighbour ≥ 0.85 | 24 % | 33 % |
+| type term of the current name among the top-5 neighbour names (n = 447) | 15 % | 16 % |
+| «?» hypothesis among the top-5 neighbour names (n = 475) | 10 % | 11 % |
+
+Median similarity of the nearest neighbour by region: Asia 0.781 → 0.805 (n = 366), Americas
+0.823 → 0.850, Africa 0.829 → 0.839.
+
+- **Closer neighbours, but hardly better names.** 54 % of the top-5 neighbours now come from the new
+  sources. Art museums often name objects with titles rather than object types («Page from the
+  Prasnapradipa…», «Boy Bringing Wealth»), so the name matching barely changes. The name metric is a
+  lower bound: synonyms count as misses.
+- **Hubs:** some reference objects land in the top 5 for a great many photos (e.g. a Freer Gallery
+  «Glass fragment» 158 times). `suggest_vmz.py` hides reference objects that are among the top 5 for
+  ≥ 10 VMZ photos; that hides 31 objects.
+  - The name metrics stay the same with this filter: 15.7 % and 10.7 %.
+  - Also tested, not used: CSLS (subtracting each reference object's mean similarity to its 10 nearest
+    VMZ photos). It reduces the hubs, but confirms fewer «?» hypotheses (10.5 % → 7.4 %).
+- **Individual examples get much better:**
+  - «Bettüberwurf (?)» → most similar object «Suzani: Divan Cover» (Cleveland);
+  - «Gefäss(?), Perlhuhn» → 3 staff finials («Finial», Freer Gallery);
+  - «Speerspitze / Harpune?» → «Harpoon» moves to rank 1.
+- **Zero-shot shifts a little** (the hubness correction uses all images): median rank of the certain
+  type term 157 instead of 139; 34 % supported, 27 % possible; «?» hypotheses 32 % supported, 29 % possible.
+- **Conclusion:** ethnographic collections with object-type names would help most (exports from MKB,
+  Rietberg, Pitt Rivers, or German-language collections on museum-digital), more than further
+  art-museum data.
+
+The published pages (`docs/`) use the extended set and the hub filter.
+
 ## Run
 
 ```bash

@@ -112,6 +112,8 @@ def main():
     ap.add_argument("--min-count", type=int, default=3, help="min. frequency of a term in the VMZ catalogue")
     ap.add_argument("--records", help="records file (default DATA_DIR/records.jsonl); an older, shorter "
                                       "records file uses the first rows of the embeddings")
+    ap.add_argument("--hub-max", type=int, default=10,
+                    help="hide reference objects that are among the top 5 of at least this many VMZ photos")
     ap.add_argument("--public", action="store_true",
                     help="page without accession register / description excerpts (for publication)")
     a = ap.parse_args()
@@ -170,17 +172,28 @@ def main():
     # ---------------------------------------------------------------- per object
     rows, stats = [], Counter(type_ranks=[])
     top1_sims = []
+    # neighbour candidates per photo and model (exact duplicates dropped)
+    cand = {}
+    for i in q_idx:
+        cand[i] = {}
+        for m in E:
+            s = E[m][ref] @ E[m][i]
+            order = [o for o in np.argsort(-s)[:200] if s[o] < 0.995]
+            cand[i][m] = ([ref[o] for o in order], {ref[o]: float(s[o]) for o in order})
+    # hubs: reference objects that land in the top 5 of very many VMZ photos (e.g. small glass fragments
+    # of the Freer Gallery) carry no information about a single object -> hidden
+    freq = Counter(j for i in q_idx for j in rrf([cand[i][m][0][:60] for m in E])[:5])
+    hubs = {j for j, c in freq.items() if c >= a.hub_max}
+    stats["hubs"], stats["hub_max"] = len(hubs), a.hub_max
+    print(f"hidden hubs (top 5 of >= {a.hub_max} photos): {len(hubs)}: "
+          + "; ".join(sorted({recs[j]['name'][:28] for j in hubs})[:10]))
+
     for i in q_idx:
         r = recs[i]
         e = E["siglip2"][i]
-        ranks, sims = [], {}
-        for m in E:
-            s = E[m][ref] @ E[m][i]
-            order = [o for o in np.argsort(-s) if s[o] < 0.995][:60]
-            ranks.append([ref[o] for o in order])
-            if m == "siglip2":
-                sims = {ref[o]: float(s[o]) for o in order}
-                top1_sims.append(float(s[order[0]]))
+        ranks = [[j for j in cand[i][m][0] if j not in hubs][:60] for m in E]
+        sims = cand[i]["siglip2"][1]
+        top1_sims.append(sims[ranks[list(E).index("siglip2")][0]])
         top = rrf(ranks)[:a.k]
         groups, shown = Counter(), {}
         for j in top:
@@ -372,7 +385,8 @@ Kalibrierung an den sicheren Typbegriffen der aktuellen Namen (n={stats['type_n'
 Median-Rang {int(np.median(stats['type_ranks'])) if stats['type_ranks'] else '–'}. «Gestützt» ist also ein starkes Indiz (zufällig: 2 %),
 «nicht gestützt» nur ein schwaches – auch richtige Begriffe landen oft dort, besonders seltene Fachwörter oder falsch übersetzte.
 Von {stats['hyp_n']} «?»-Hypothesen sind {stats['hyp_sup'] / hn:.0%} gestützt, {stats['hyp_pos'] / hn:.0%} möglich.
-Zahl auf den Karten = Bildähnlichkeit (SigLIP 2, höher = ähnlicher).
+Zahl auf den Karten = Bildähnlichkeit (SigLIP 2, höher = ähnlicher). Ausgeblendet sind {stats['hubs']} Vergleichsobjekte,
+die bei {stats['hub_max']} oder mehr Fotos unter den Top 5 wären («Hubs», z. B. kleine Glasfragmente).
 Vorschläge sind Hinweise – entscheiden muss die Fachperson.
 {RIGHTS_PUBLIC if a.public else 'Bilder und Katalogdaten: intern, nicht veröffentlichen.'}</small></p></div>
 <div class="bar"><input id="q" type="search" placeholder="Suche: Inventarnummer, Name, Begriff, Region …" aria-label="Suche">
