@@ -4,9 +4,10 @@
  * Feedback becomes an issue in the public GitHub repository ruedtim/glamhack26-similar-search, in one of two ways:
  * - With a GitHub account (the way while RELAY_DEFAULT is empty): GitHub's «new issue» page with the issue form
  *   .github/ISSUE_TEMPLATE/feedback.yml, prefilled.
- * - Without a GitHub account, once RELAY_DEFAULT names a relay: a small form on the page sends the feedback there (an
- *   inbox outside GitHub, e.g. a Google Apps Script web app); a scheduled GitHub Action fetches the messages and
- *   opens the issues with GitHub's own token, so no personal token is stored anywhere.
+ * - Without a GitHub account, once RELAY_DEFAULT names a relay: a small form on the page sends the feedback there
+ *   (feedback-relay/Code.gs, a Google Apps Script web app shared with the box viewer's pages); the scheduled Action
+ *   .github/workflows/feedback.yml fetches this site's messages and opens the issues with GitHub's own token, so no
+ *   personal token is stored anywhere.
  * Both carry where the feedback comes from: the page, its online address (also when the page is opened from the
  * offline copy – never the local file path) and the object. Issues are public, so the form asks for no names of
  * private persons and no contact details.
@@ -24,8 +25,9 @@
   if (window.ppFeedback) return;
   const REPO = 'https://github.com/ruedtim/glamhack26-similar-search';
   const SITE = 'https://ruedtim.github.io/glamhack26-similar-search/';
-  const RELAY_DEFAULT = '';  // address of a feedback relay, e.g. a Google Apps Script web app (https://script.google.com/macros/s/…/exec)
+  const RELAY_DEFAULT = 'https://script.google.com/macros/s/AKfycbwq5h4eYLosUKT5GRU-6PGGK5sowW_voGYxxn3DRq9g4Ngua-r4scgbuTz5NuladMGS5g/exec';  // address of a feedback relay, e.g. a Google Apps Script web app (https://script.google.com/macros/s/…/exec)
   const RELAY = typeof window.ppFeedbackRelay === 'string' ? window.ppFeedbackRelay : RELAY_DEFAULT;
+  const RELAY_SITE = 'similar-search';  // this site in the relay, which serves several sites
   const KINDS = ['Ein Bezeichnungsvorschlag passt nicht', 'Ich weiss eine bessere Bezeichnung',
                  'Ein ähnliches Objekt passt nicht', 'Eine Angabe oder ein Link stimmt nicht', 'Etwas funktioniert nicht',
                  'Idee oder Wunsch', 'Anderes'];
@@ -202,7 +204,7 @@
     status('Wird gesendet …', '');
     try {
       const r = await fetch(RELAY, { method: 'POST', body: JSON.stringify({  // text/plain: no preflight request
-        kind: f.kind.value, details: f.details.value, context: f.context.value, where: current.where, inv: current.inv,
+        site: RELAY_SITE, kind: f.kind.value, details: f.details.value, context: f.context.value, where: current.where, inv: current.inv,
         website: f.website.value, elapsed: Date.now() - opened }) });
       const j = await r.json();
       if (!j.ok) throw Object.assign(new Error(j.error || FAIL), { relay: true });

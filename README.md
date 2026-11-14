@@ -7,8 +7,11 @@
 with the other collections.
 
 **Feedback:** the button «Feedback» at the top right of every page and «Rückmeldung zu diesem Objekt» at each
-object in the two lists open GitHub's issue form (`.github/ISSUE_TEMPLATE/feedback.yml`), prefilled with the page,
-its online address and the object. Submitting needs a GitHub account; the issues are public.
+object in the two lists open a small form. The feedback becomes a public GitHub issue (labels `feedback`,
+`via form`), without a GitHub account: a Google Apps Script relay shared with the Provenance Pursuit pages
+(`feedback-relay/`) keeps the message, and the Action `.github/workflows/feedback.yml` opens the issue with GitHub's
+own token, so no personal token is stored anywhere. With an account, the prefilled issue form
+(`.github/ISSUE_TEMPLATE/feedback.yml`) works too.
 
 **Offline copy:** [download the ZIP](https://github.com/ruedtim/glamhack26-similar-search/releases/latest/download/glamhack26-similar-search-offline.zip)
 (69 MB, attached to the latest [release](https://github.com/ruedtim/glamhack26-similar-search/releases)). Unpack it
@@ -453,17 +456,28 @@ PRM 1,475, Rietberg 893).
 ### Feedback per object, phone layout (14.11.2026)
 
 - `docs/feedback.js` (adapted from the Provenance Pursuit pages, `ruedtim/glamhack26-box-viewer`) handles the
-  button and a new link «Rückmeldung zu diesem Objekt» at each object of both lists. A click opens GitHub's issue
-  form, prefilled with the page, its online address and the object (inventory number and name, as the page shows
-  them). Opened from the offline ZIP, it sends the online address, never the local file path.
+  button and a new link «Rückmeldung zu diesem Objekt» at each object of both lists. It sends along the page, its
+  online address and the object (inventory number and name, as the page shows them); opened from the offline ZIP,
+  it sends the online address, never the local file path.
 - The issue form has new fields (`kind`, `details`, `context`) with seven kinds of feedback, e.g. «Ein
   Bezeichnungsvorschlag passt nicht» or «Ich weiss eine bessere Bezeichnung»; `KINDS` in `docs/feedback.js` must
   stay identical.
-- Feedback without a GitHub account is prepared but not switched on. GitHub alone cannot take messages from a
-  page without a token, so it needs a small inbox outside GitHub (e.g. a Google Apps Script web app) from which a
-  scheduled GitHub Action opens the issues with GitHub's own token. With such a relay set in `RELAY_DEFAULT`,
-  `docs/feedback.js` shows a form on the page instead of sending people to GitHub.
 - The lists no longer overflow on phones: long words in cards, chips and catalogue fields now break.
+
+### Feedback without a GitHub account (14.11.2026)
+
+- GitHub alone cannot take messages from a page: an Action only starts on events inside GitHub, and starting one
+  from a page would need a token in the page. So the form posts to a small inbox outside GitHub, a Google Apps
+  Script web app (`feedback-relay/Code.gs`). It is shared with the Provenance Pursuit pages: one deployment, each
+  message marked with its site; the box viewer's form and Action, which send no site, keep working unchanged.
+- The relay keeps a message for up to 48 hours. The Action `.github/workflows/feedback.yml` fetches this site's
+  messages every 10 minutes and opens one issue each with GitHub's own `GITHUB_TOKEN` (`issues: write`), as
+  `github-actions[bot]`. No personal token is stored anywhere.
+- Safeguards per site: 20 messages per hour and 100 per day, a hidden field and a minimum time against bots;
+  visitor text goes into code blocks (no links, images or @mentions); a hidden `feedback-id` prevents duplicates.
+- GitHub's timer is «best effort»: in the box viewer's repository it had not started the Action once in its first
+  two hours. Hence 48 instead of 6 hours, and the relay's status page shows per site how long the oldest message
+  has been waiting. Setup and operation: `feedback-relay/README.md`.
 
 ### Clean names of reference objects (14.11.2026)
 
@@ -545,8 +559,9 @@ CPU threads). It's quieter and takes about twice as long. `embed.py` only comput
 - `suggest_mkb.py` – the MKB list (`docs/review/mkb.html`): all MKB objects as starting point, neighbours in
   the other collections including the VMZ objects, terms from the VMZ vocabulary.
 - `make_overview.py` – the overview page for the challenge owners (`docs/index.html`).
-- `feedback.py` – the feedback button and the object links of all pages; `docs/feedback.js` prefills GitHub's
-  issue form with where the feedback comes from (and can send to a relay instead, see the development log).
+- `feedback.py` – the feedback button and the object links of all pages; `docs/feedback.js` shows the form on the
+  page and sends it to the relay (`feedback-relay/Code.gs`, Google Apps Script shared with the box viewer);
+  `.github/workflows/feedback.yml` turns the messages into issues.
 - `make_offline_zip.py` – the offline copy of `docs/` as a ZIP, with link check.
 
 The query images `q_uzh25744_figur_auf_sockel.png` and `q_uzh00001_bambusgitarre.png` are crops from
