@@ -30,6 +30,7 @@ import openpyxl
 from PIL import Image
 
 from evaluate import clean
+from feedback import FEEDBACK_CSS, feedback_html
 from models import Embedder, load_embeddings
 from geo import Geo, proximity
 from suggest import clean_de, rrf
@@ -54,7 +55,7 @@ body{background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,sans-serif;ma
 h1{font-size:24px;margin:8px 0} h3{font-size:13px;color:var(--mut);margin:12px 0 6px;font-weight:600}
 .bar{position:sticky;top:0;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center;z-index:2}
 .bar input,.bar select{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg)}
-.bar input{flex:1;min-width:200px}
+.bar input{flex:1;min-width:160px} .bar select{max-width:190px}
 section{border-bottom:1px solid var(--line);padding:14px 0}
 section{scroll-margin-top:64px} section:target{background:var(--chip)}   /* links from the overview land below the sticky bar */
 .row{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap} .q{width:260px;display:flex;flex-direction:column;gap:4px}
@@ -630,7 +631,8 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
     page = f"""<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>VMZ Namensvorschläge</title>
 <style>
-{LIST_CSS}</style></head><body>
+{LIST_CSS}{FEEDBACK_CSS}</style></head><body>
+{feedback_html("review/index.html", "VMZ-Liste") if a.public else ""}
 {home_nav}
 <h1>Namensvorschläge für VMZ-Objekte mit unsicheren oder generischen Namen (PoC)</h1>
 <div class="lead"><p>{n} Objekte aus der GLAMhack-Stichprobe des Völkerkundemuseums der Universität Zürich:

@@ -1,0 +1,26 @@
+name: Feedback zur Ähnlichkeitssuche
+description: Rückmeldung zu den Seiten (Übersicht, VMZ-Liste, MKB-Liste), geöffnet über den Feedback-Knopf.
+title: "Feedback: "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke für die Rückmeldung zur Ähnlichkeitssuche «To Be Renamed!» (GLAMhack 2026). Dieses Issue ist öffentlich sichtbar.
+  - type: input
+    id: seite
+    attributes:
+      label: Seite
+      description: Wird über den Feedback-Knopf automatisch ausgefüllt.
+  - type: input
+    id: objekt
+    attributes:
+      label: Objekt
+      description: Inventarnummer, falls es um ein bestimmtes Objekt geht.
+  - type: textarea
+    id: rueckmeldung
+    attributes:
+      label: Rückmeldung
+      description: Was ist hilfreich, was stimmt nicht, was fehlt?
+    validations:
+      required: true

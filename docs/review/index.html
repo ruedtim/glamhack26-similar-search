@@ -7,7 +7,7 @@ body{background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,sans-serif;ma
 h1{font-size:24px;margin:8px 0} h3{font-size:13px;color:var(--mut);margin:12px 0 6px;font-weight:600}
 .bar{position:sticky;top:0;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center;z-index:2}
 .bar input,.bar select{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg)}
-.bar input{flex:1;min-width:200px}
+.bar input{flex:1;min-width:160px} .bar select{max-width:190px}
 section{border-bottom:1px solid var(--line);padding:14px 0}
 section{scroll-margin-top:64px} section:target{background:var(--chip)}   /* links from the overview land below the sticky bar */
 .row{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap} .q{width:260px;display:flex;flex-direction:column;gap:4px}
@@ -30,7 +30,25 @@ nav.top{font-size:13px;margin:4px 0 0} nav.top a{color:var(--mut);text-decoratio
 .switch{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card)}
 .switch a{padding:6px 10px;text-decoration:none;font-weight:600;white-space:nowrap;color:var(--fg)}
 .switch a[aria-current="page"]{background:var(--fg);color:var(--bg)}
+
+.feedback{position:fixed;top:10px;right:16px;z-index:20;display:inline-flex;align-items:center;gap:6px;
+padding:8px 15px;border-radius:999px;background:#8a3b12;color:#fff;font:600 14px/1.2 system-ui,sans-serif;
+text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.feedback:hover,.feedback:focus-visible{background:#6d2d0c}
+.feedback svg{width:16px;height:16px;flex:none}
+@media (prefers-color-scheme: dark){.feedback{background:#e0a24a;color:#191917}.feedback:hover,.feedback:focus-visible{background:#f0b862}}
+.bar{padding-right:132px}
+@media (max-width:760px){body{padding-top:56px}}
+@media print{.feedback{display:none}}
 </style></head><body>
+<a class="feedback" href="https://github.com/ruedtim/glamhack26-similar-search/issues/new?template=feedback.yml&amp;title=Feedback%3A+VMZ-Liste&amp;seite=https%3A%2F%2Fruedtim.github.io%2Fglamhack26-similar-search%2Freview%2Findex.html" target="_blank" rel="noopener" data-site="https://ruedtim.github.io/glamhack26-similar-search/" data-page="review/index.html" title="Rückmeldung als GitHub-Issue (öffnet GitHub; ein GitHub-Konto ist nötig)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Feedback</a><script>
+document.querySelector('a.feedback').addEventListener('click', e => {
+  const a = e.currentTarget, u = new URL(a.href);
+  u.searchParams.set('seite', a.dataset.site + a.dataset.page + location.hash);
+  if (location.hash.startsWith('#o-')) u.searchParams.set('objekt', decodeURIComponent(location.hash.slice(3)));
+  a.href = u.toString();
+});
+</script>
 <nav class="top"><a href="../index.html">← Zur Übersicht</a></nav>
 <h1>Namensvorschläge für VMZ-Objekte mit unsicheren oder generischen Namen (PoC)</h1>
 <div class="lead"><p>1019 Objekte aus der GLAMhack-Stichprobe des Völkerkundemuseums der Universität Zürich:

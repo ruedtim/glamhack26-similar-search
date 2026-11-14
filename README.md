@@ -6,6 +6,10 @@
 «VMZ | MKB», [all 7,310 MKB objects](https://ruedtim.github.io/glamhack26-similar-search/review/mkb.html) compared
 with the other collections.
 
+**Feedback:** the button at the top right of every page opens a prefilled GitHub issue form
+(`.github/ISSUE_TEMPLATE/feedback.yml`, label `feedback`) with the page and, after a jump to an object, its anchor.
+Submitting needs a GitHub account; the issues are public.
+
 **Offline copy:** [download the ZIP](https://github.com/ruedtim/glamhack26-similar-search/releases/latest/download/glamhack26-similar-search-offline.zip)
 (69 MB, attached to the latest [release](https://github.com/ruedtim/glamhack26-similar-search/releases)). Unpack it
 and double-click `START.html`. It works in any current browser, without a web server or internet.
@@ -442,6 +446,9 @@ PRM 1,475, Rietberg 893).
 - The PDF export of the overview was removed, online and in the ZIP. `make_overview.py` no longer prints a PDF.
 - The ZIP grows to 69 MB (18,586 files). `make_offline_zip.py` now also checks the image paths and anchors inside
   the data embedded in the MKB list.
+- A feedback button (`feedback.py`) at the top right of all three pages opens the GitHub issue form
+  `feedback.yml`. A static page cannot create issues by itself without publishing a token; issues from people
+  without a GitHub account would need a small relay service that keeps the token as a secret.
 
 ## Run
 
@@ -511,6 +518,7 @@ CPU threads). It's quieter and takes about twice as long. `embed.py` only comput
 - `suggest_mkb.py` – the MKB list (`docs/review/mkb.html`): all MKB objects as starting point, neighbours in
   the other collections including the VMZ objects, terms from the VMZ vocabulary.
 - `make_overview.py` – the overview page for the challenge owners (`docs/index.html`).
+- `feedback.py` – the feedback button of all pages (prefilled GitHub issue form).
 - `make_offline_zip.py` – the offline copy of `docs/` as a ZIP, with link check.
 
 The query images `q_uzh25744_figur_auf_sockel.png` and `q_uzh00001_bambusgitarre.png` are crops from

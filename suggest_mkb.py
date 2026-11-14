@@ -23,6 +23,7 @@ from pathlib import Path
 import numpy as np
 
 from evaluate import clean
+from feedback import FEEDBACK_CSS, feedback_html
 from models import Embedder, load_embeddings
 from suggest import clean_de
 from suggest_vmz import (EN_TEMPLATE, LIST_CSS, POS_SHARE, SUP_SHARE, can_publish, fname, name_terms, switch_html,
@@ -40,12 +41,11 @@ RIGHTS = ("Fotos der MKB-Objekte: © Museum der Kulturen Basel, via PARC – Por
           "Museen) – Miniaturen nur zum Vergleich, mit Link zur Quelle. Pitt Rivers Museum: nur Name und Link, die "
           "Bilder werden aus Rechtegründen nicht gezeigt.")
 PAGE_CSS = """
-.q{width:180px} #list{scroll-margin-top:64px} .c.vmz{border-color:var(--acc2);border-width:2px}
+.q{width:180px} #list{scroll-margin-top:64px}
 .pager{display:flex;gap:10px;align-items:center;justify-content:center;margin:18px 0;font-size:13px}
 .pager button,.bar button{font:inherit;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg);cursor:pointer}
 .pager button:disabled,.bar button:disabled{opacity:.4;cursor:default}
-.bar select{max-width:190px} .pages{display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
-.legend{display:inline-block;width:12px;height:12px;border:2px solid var(--acc2);border-radius:3px;vertical-align:-2px}
+.bar select{max-width:170px} .pages{display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
 @media (max-width:600px){.q{width:100%}}
 """
 SCRIPT = r"""
@@ -63,7 +63,7 @@ function card(n) {
   const pic = r[4] ? `<img src="${r[4]}" alt="" loading="lazy">`
                    : '<div class="noimg">Bild nicht veröffentlicht – Link zur Quelle</div>';
   const out = r[5] ? '' : ' target="_blank" rel="noopener"';
-  return `<a class="c${r[5] ? ' vmz' : ''}" href="${esc(r[3])}"${out}>${pic}<b>${esc(r[0])}</b>` +
+  return `<a class="c" href="${esc(r[3])}"${out}>${pic}<b>${esc(r[0])}</b>` +
          `<small>${esc(r[1])}${r[2] ? ' · ' + esc(r[2]) : ''}${n[1] ? ' · ' + (n[1] / 100).toFixed(2) : ''}</small></a>`;
 }
 function section(i) {
@@ -257,13 +257,14 @@ def main():
     page = f"""<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>MKB-Objekte im Vergleich</title>
 <style>
-{LIST_CSS}{PAGE_CSS}</style></head><body>
+{LIST_CSS}{PAGE_CSS}{FEEDBACK_CSS}</style></head><body>
+{feedback_html("review/mkb.html", "MKB-Liste")}
 {f'<nav class="top"><a href="{home}">← Zur Übersicht</a></nav>' if home else ''}
 <h1>Alle MKB-Objekte im Vergleich mit anderen Sammlungen (PoC)</h1>
 <div class="lead"><p>{n} Objekte des Museums der Kulturen Basel mit Foto (Afrika-Sammlung, via PARC – Portal for
 African Research Collections, Universität Basel) als Ausgangspunkt: je die ähnlichsten Objekte in den anderen
-Sammlungen – darunter die {n_vmz} VMZ-Objekte der GLAMhack-Stichprobe (<span class="legend"></span> grün umrandet,
-Link zum Eintrag in der VMZ-Liste) – und passende Begriffe aus dem VMZ-Vokabular.
+Sammlungen – darunter die {n_vmz} VMZ-Objekte der GLAMhack-Stichprobe (mit Link zum Eintrag
+in der VMZ-Liste) – und passende Begriffe aus dem VMZ-Vokabular.
 Vergleichsbestand: {len(ref)} Objekte ({refmix}). Bildähnlichkeit: SigLIP 2 + DINOv2 (gewichtete Rangfusion,
 DINOv2 mit Gewicht {a.dino_weight}); Begriffe: SigLIP 2 Bild ↔ Text gegen {len(de_vocab)} Typbegriffe aus den
 Objektnamen des VMZ-Katalogs, vorher maschinell ins Englische übersetzt (grau: die Übersetzung).</p>

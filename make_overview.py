@@ -16,6 +16,8 @@ from pathlib import Path
 
 from PIL import Image
 
+from feedback import FEEDBACK_CSS, feedback_html
+
 REPO = "https://github.com/ruedtim/glamhack26-similar-search"
 SITE = "https://ruedtim.github.io/glamhack26-similar-search/"
 ZIP = REPO + "/releases/latest/download/glamhack26-similar-search-offline.zip"   # GitHub release asset (make_offline_zip.py)
@@ -288,7 +290,7 @@ a{{color:var(--acc)}}
  .nbh{{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
  .ex{{grid-template-columns:28mm 1fr}} .body p{{margin:3px 0}} .lab{{margin-top:5px!important}} ol.steps li{{margin:3px 0}}
  .keep{{break-inside:avoid}} h2.learnh{{break-before:page}}}}
-</style></head><body><main>
+{FEEDBACK_CSS}</style></head><body>{feedback_html("index.html", "Übersicht")}<main>
 <p class="kicker">GLAMhack 2026 · Challenge «To Be Renamed!» · Völkerkundemuseum der Universität Zürich</p>
 <h1>Bildähnlichkeit als Hilfe beim Umbenennen</h1>
 <p class="lead">Für {res['n']} Objekte mit unsicheren oder generischen Namen ({grp_text}) haben wir die Fotos mit

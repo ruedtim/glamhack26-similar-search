@@ -56,7 +56,8 @@ INHALT
   review/vmz_results.json       alle Resultate, maschinenlesbar
 
 Läuft ohne Installation und ohne Internet in jedem aktuellen Browser (Chrome, Edge, Firefox, Safari).
-Internet braucht es nur für die Links zu den Objektseiten der anderen Museen.
+Internet braucht es nur für die Links zu den Objektseiten der anderen Museen und für den Knopf «Feedback»
+oben rechts: Er öffnet auf GitHub ein Formular für eine Rückmeldung (ein GitHub-Konto ist nötig).
 Auf Smartphones und Tablets besser die Online-Version öffnen.
 
 RECHTE
