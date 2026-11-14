@@ -6,9 +6,9 @@
 «VMZ | MKB», [all 7,310 MKB objects](https://ruedtim.github.io/glamhack26-similar-search/review/mkb.html) compared
 with the other collections.
 
-**Feedback:** the button at the top right of every page opens a prefilled GitHub issue form
-(`.github/ISSUE_TEMPLATE/feedback.yml`, label `feedback`) with the page and, after a jump to an object, its anchor.
-Submitting needs a GitHub account; the issues are public.
+**Feedback:** the button «Feedback» at the top right of every page and «Rückmeldung zu diesem Objekt» at each
+object in the two lists open GitHub's issue form (`.github/ISSUE_TEMPLATE/feedback.yml`), prefilled with the page,
+its online address and the object. Submitting needs a GitHub account; the issues are public.
 
 **Offline copy:** [download the ZIP](https://github.com/ruedtim/glamhack26-similar-search/releases/latest/download/glamhack26-similar-search-offline.zip)
 (69 MB, attached to the latest [release](https://github.com/ruedtim/glamhack26-similar-search/releases)). Unpack it
@@ -447,8 +447,35 @@ PRM 1,475, Rietberg 893).
 - The ZIP grows to 69 MB (18,586 files). `make_offline_zip.py` now also checks the image paths and anchors inside
   the data embedded in the MKB list.
 - A feedback button (`feedback.py`) at the top right of all three pages opens the GitHub issue form
-  `feedback.yml`. A static page cannot create issues by itself without publishing a token; issues from people
-  without a GitHub account would need a small relay service that keeps the token as a secret.
+  `feedback.yml`. A static page cannot create issues by itself without publishing a token; for people without a
+  GitHub account see the next section.
+
+### Feedback per object, phone layout (14.11.2026)
+
+- `docs/feedback.js` (adapted from the Provenance Pursuit pages, `ruedtim/glamhack26-box-viewer`) handles the
+  button and a new link «Rückmeldung zu diesem Objekt» at each object of both lists. A click opens GitHub's issue
+  form, prefilled with the page, its online address and the object (inventory number and name, as the page shows
+  them). Opened from the offline ZIP, it sends the online address, never the local file path.
+- The issue form has new fields (`kind`, `details`, `context`) with seven kinds of feedback, e.g. «Ein
+  Bezeichnungsvorschlag passt nicht» or «Ich weiss eine bessere Bezeichnung»; `KINDS` in `docs/feedback.js` must
+  stay identical.
+- Feedback without a GitHub account is prepared but not switched on. GitHub alone cannot take messages from a
+  page without a token, so it needs a small inbox outside GitHub (e.g. a Google Apps Script web app) from which a
+  scheduled GitHub Action opens the issues with GitHub's own token. With such a relay set in `RELAY_DEFAULT`,
+  `docs/feedback.js` shows a form on the page instead of sending people to GitHub.
+- The lists no longer overflow on phones: long words in cards, chips and catalogue fields now break.
+
+### Clean names of reference objects (14.11.2026)
+
+- 560 Smithsonian records had garbled non-Latin characters, e.g. «Waves at Matsushima æ¾å³¶…» instead of
+  «松島図屏風», or «CÃ´te d'Ivoire». The bulk files on S3 are UTF-8 but declare no charset, so `requests` decoded
+  them as Latin-1. `harvest_more.py` now decodes them as UTF-8.
+- 410 Smithsonian titles carried HTML markup (`<em>…</em>`) or entities, and 4 culture fields from the Philippines
+  database carried `<br />`, a link or `<span>`. The harvesters now pass these fields through `harvest.plain()`.
+- The existing records were repaired once (backup `data/records_before_si_text.jsonl`); ids, images and
+  embeddings are unchanged. The English terms from the reference names grow from 1,310 to 1,312; for 16 VMZ
+  objects they change slightly (e.g. «seated shijia buddha» instead of the fragment «seated em shijia»).
+  The other figures on the pages stay the same.
 
 ## Run
 
@@ -518,7 +545,8 @@ CPU threads). It's quieter and takes about twice as long. `embed.py` only comput
 - `suggest_mkb.py` – the MKB list (`docs/review/mkb.html`): all MKB objects as starting point, neighbours in
   the other collections including the VMZ objects, terms from the VMZ vocabulary.
 - `make_overview.py` – the overview page for the challenge owners (`docs/index.html`).
-- `feedback.py` – the feedback button of all pages (prefilled GitHub issue form).
+- `feedback.py` – the feedback button and the object links of all pages; `docs/feedback.js` prefills GitHub's
+  issue form with where the feedback comes from (and can send to a relay instead, see the development log).
 - `make_offline_zip.py` – the offline copy of `docs/` as a ZIP, with link check.
 
 The query images `q_uzh25744_figur_auf_sockel.png` and `q_uzh00001_bambusgitarre.png` are crops from

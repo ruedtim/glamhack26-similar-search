@@ -30,7 +30,7 @@ import openpyxl
 from PIL import Image
 
 from evaluate import clean
-from feedback import FEEDBACK_CSS, feedback_html
+from feedback import FEEDBACK_CSS, feedback_html, object_link
 from models import Embedder, load_embeddings
 from geo import Geo, proximity
 from suggest import clean_de, rrf
@@ -60,15 +60,17 @@ section{border-bottom:1px solid var(--line);padding:14px 0}
 section{scroll-margin-top:64px} section:target{background:var(--chip)}   /* links from the overview land below the sticky bar */
 .row{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap} .q{width:260px;display:flex;flex-direction:column;gap:4px}
 .sug{flex:1;min-width:280px} .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.grid>*{min-width:0;overflow-wrap:anywhere}
 .c{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:3px}
 .c img,.q img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:4px}
-.chip{display:inline-block;background:var(--chip);border-radius:999px;padding:2px 10px;margin:0 6px 6px 0;font-size:13px}
+.chip{display:inline-block;background:var(--chip);border-radius:999px;padding:2px 10px;margin:0 6px 6px 0;font-size:13px;
+max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
 .chip.sup{background:var(--sup)} .chip.pos{background:var(--pos)} .chip i{color:var(--mut);font-style:normal}
 b{font-size:13px} .name{font-size:15px} small{font-size:11px;color:var(--mut)} .k{font-weight:600} .log{font-style:italic}
 .warn{color:var(--warn)} a{color:inherit} .lead{max-width:900px} .lead small{font-size:13px}
 details.cat{font-size:11px;color:var(--mut)} details.cat summary{cursor:pointer;font-weight:600;margin:4px 0}
-details.cat dl{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;margin:4px 0} details.cat dt{font-weight:600}
-details.cat dd{margin:0;color:var(--fg);white-space:pre-line}
+details.cat dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 8px;margin:4px 0} details.cat dt{font-weight:600}
+details.cat dd{margin:0;color:var(--fg);white-space:pre-line;overflow-wrap:anywhere}
 .c small.geo{color:var(--acc2);font-weight:600}
 .noimg{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;
 color:var(--mut);background:var(--chip);border-radius:4px;padding:6px}
@@ -604,11 +606,12 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
         nat = "".join(f'<span class="chip">{esc(t)} <i>×{k} ({esc(nn)})</i></span>' for nn, t, k in x["nat"][:4])
         text = " ".join([r["inv"], r["name"], " ".join(v for _, _, v in x["catalog"]),
                          " ".join(x["de"]), " ".join(x["en"]), " ".join(nm for nm, _ in x["knn"])]).lower()
+        fb = f"<small>{object_link(r['inv'], r['name'])}</small>" if a.public else ""
         blocks.append(f"""<section id="o-{safe}" data-flag="{esc(r['flag'])}" data-hyp="{hyp_state}" data-text="{esc(text)}">
 <div class="row"><div class="q"><img src="{qimg}" alt="" loading="lazy">
 <b class="name">{esc(r['name'] or '–')}</b>
 <small>Inv.-Nr. <b>{esc(r['inv'])}</b> · {esc(r['image_url'].replace('VMZ_objects-with-', '').replace('.pdf', ''))}</small>
-{note}{meta_html}<small class="log">{esc(log[:240])}{'…' if len(log) > 240 else ''}</small></div>
+{fb}{note}{meta_html}<small class="log">{esc(log[:240])}{'…' if len(log) > 240 else ''}</small></div>
 <div class="sug">
 <h3>Begriffe im aktuellen Namen – Rang im VMZ-Vokabular</h3><div>{term_chips or '<small>–</small>'}</div>
 <h3>Passende Begriffe aus dem VMZ-Vokabular (Bild ↔ Text)</h3><div>{''.join(f'<span class="chip">{esc(t)} <i>{esc(tr.get(t, ""))}</i></span>' for t in x['de'])}</div>
@@ -632,7 +635,7 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>VMZ Namensvorschläge</title>
 <style>
 {LIST_CSS}{FEEDBACK_CSS}</style></head><body>
-{feedback_html("review/index.html", "VMZ-Liste") if a.public else ""}
+{feedback_html("../") if a.public else ""}
 {home_nav}
 <h1>Namensvorschläge für VMZ-Objekte mit unsicheren oder generischen Namen (PoC)</h1>
 <div class="lead"><p>{n} Objekte aus der GLAMhack-Stichprobe des Völkerkundemuseums der Universität Zürich:

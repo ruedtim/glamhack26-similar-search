@@ -12,9 +12,11 @@ Usage:
 Writes DATA_DIR/records.jsonl and DATA_DIR/img/<source>_<id>.jpg (max 448 px).
 """
 import argparse
+import html
 import io
 import json
 import random
+import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -26,6 +28,13 @@ from PIL import Image
 UA = "glam-feasibility-test/0.1 (GLAMhack 2026 research prototype)"
 random.seed(42)
 _local = threading.local()
+
+
+def plain(s):
+    """Plain text from a source field that may carry HTML (<em>, <br />, links) or entities: line-breaking tags
+    become a space, inline tags (<em>, <span>, <a> …) disappear."""
+    s = re.sub(r"<(?:br|p|div|li|tr|td|h\d)\b[^>]*>|</(?:p|div|li|tr|td|h\d)>", " ", s or "", flags=re.I)
+    return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", s))).strip()
 
 
 def sess():
@@ -113,9 +122,9 @@ def phil_records(n_pages):
         return {
             "source": "phil",
             "id": f"phil_{it['id']}",
-            "name": (et.get("Title") or "").strip(),
-            "title": (et.get("Title") or "").strip(),
-            "culture": (et.get("Spatial Coverage") or et.get("Coverage") or "").strip(),
+            "name": plain(et.get("Title")),
+            "title": plain(et.get("Title")),
+            "culture": plain(et.get("Spatial Coverage") or et.get("Coverage")),
             "holder": phil_holder(it, et, colls),
             "desc": (et.get("Description") or "")[:300],
             "url": f"https://philippinestudies.uk/mapping/items/show/{it['id']}",

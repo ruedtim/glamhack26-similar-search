@@ -23,7 +23,7 @@ from pathlib import Path
 import numpy as np
 
 from evaluate import clean
-from feedback import FEEDBACK_CSS, feedback_html
+from feedback import FEEDBACK_CSS, FORM, TIP, feedback_html
 from models import Embedder, load_embeddings
 from suggest import clean_de
 from suggest_vmz import (EN_TEMPLATE, LIST_CSS, POS_SHARE, SUP_SHARE, can_publish, fname, name_terms, switch_html,
@@ -77,6 +77,8 @@ function section(i) {
     `<a href="${esc(o[4])}" target="_blank" rel="noopener"><img src="${o[5]}" alt="" loading="lazy"></a>` +
     `<b class="name">${esc(o[1] || '–')}</b>${o[2] ? `<small>${esc(o[2])}</small>` : ''}` +
     `<small>Inv.-Nr. <b>${esc(o[0])}</b> · <a href="${esc(o[4])}" target="_blank" rel="noopener">PARC</a></small>` +
+    `<small><a class="ppfb-link" href="${esc(FB)}" data-ppfb="${esc(JSON.stringify({inv: o[0], title: o[1] || ''}))}"` +
+    ` target="_blank" rel="noopener" title="${esc(TIP)}">Rückmeldung zu diesem Objekt</a></small>` +
     `${o[3] ? `<small><span class="k">Kultur, Herkunft:</span> ${esc(o[3])}</small>` : ''}</div>` +
     `<div class="sug"><h3>Begriffe im aktuellen Namen – Rang im VMZ-Vokabular</h3><div>${names}</div>` +
     `<h3>Passende Begriffe aus dem VMZ-Vokabular (Bild ↔ Text)</h3><div>${terms}</div>` +
@@ -258,7 +260,7 @@ def main():
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>MKB-Objekte im Vergleich</title>
 <style>
 {LIST_CSS}{PAGE_CSS}{FEEDBACK_CSS}</style></head><body>
-{feedback_html("review/mkb.html", "MKB-Liste")}
+{feedback_html("../")}
 {f'<nav class="top"><a href="{home}">← Zur Übersicht</a></nav>' if home else ''}
 <h1>Alle MKB-Objekte im Vergleich mit anderen Sammlungen (PoC)</h1>
 <div class="lead"><p>{n} Objekte des Museums der Kulturen Basel mit Foto (Afrika-Sammlung, via PARC – Portal for
@@ -285,7 +287,7 @@ Vorschläge sind Hinweise – entscheiden muss die Fachperson. {RIGHTS}</small><
 <div id="list"></div>
 <nav class="pager" id="pager"></nav>
 <script id="data" type="application/json">{data_json}</script>
-<script>{SCRIPT}</script></body></html>"""
+<script>const FB = {json.dumps(FORM)}, TIP = {json.dumps(TIP, ensure_ascii=False)};{SCRIPT}</script></body></html>"""
     (out / "mkb.html").write_text(page, encoding="utf-8")
     print(f"wrote {out / 'mkb.html'} ({len(page.encode()) / 1e6:.1f} MB, {n} objects, {len(ref_rows)} neighbours; "
           f"type term supported {stats['type_sup'] / tn:.0%}, possible {stats['type_pos'] / tn:.0%}, median rank {med}; "

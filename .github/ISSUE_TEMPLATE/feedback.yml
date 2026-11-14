@@ -1,26 +1,38 @@
 name: Feedback zur Ähnlichkeitssuche
-description: Rückmeldung zu den Seiten (Übersicht, VMZ-Liste, MKB-Liste), geöffnet über den Feedback-Knopf.
+description: Rückmeldung zu den Seiten (Übersicht, VMZ-Liste, MKB-Liste) – ein Vorschlag, ein Objekt, eine Angabe oder eine Idee.
 title: "Feedback: "
 labels: ["feedback"]
 body:
   - type: markdown
     attributes:
       value: |
-        Danke für die Rückmeldung zur Ähnlichkeitssuche «To Be Renamed!» (GLAMhack 2026). Dieses Issue ist öffentlich sichtbar.
-  - type: input
-    id: seite
+        Danke für die Rückmeldung zur Ähnlichkeitssuche «To Be Renamed!» (GLAMhack 2026). Dieses Issue ist **öffentlich**: bitte keine Namen von Privatpersonen und keine Kontaktdaten.
+        Die Seite hat unten eingetragen, woher die Rückmeldung kommt; was nicht mitgeschickt werden soll, einfach löschen.
+  - type: dropdown
+    id: kind
     attributes:
-      label: Seite
-      description: Wird über den Feedback-Knopf automatisch ausgefüllt.
-  - type: input
-    id: objekt
-    attributes:
-      label: Objekt
-      description: Inventarnummer, falls es um ein bestimmtes Objekt geht.
-  - type: textarea
-    id: rueckmeldung
-    attributes:
-      label: Rückmeldung
-      description: Was ist hilfreich, was stimmt nicht, was fehlt?
+      label: Worum geht es?
+      # keep identical with KINDS in docs/feedback.js (and in the feedback relay, if one is set up)
+      options:
+        - Ein Bezeichnungsvorschlag passt nicht
+        - Ich weiss eine bessere Bezeichnung
+        - Ein ähnliches Objekt passt nicht
+        - Eine Angabe oder ein Link stimmt nicht
+        - Etwas funktioniert nicht
+        - Idee oder Wunsch
+        - Anderes
     validations:
       required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Was ist aufgefallen, und was wäre richtig?
+      placeholder: "Zum Beispiel: Der Vorschlag «Maske» passt nicht, auf dem Foto ist ein Kopfschmuck."
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Wo (von der Seite ausgefüllt)
+      description: Seite, Adresse und Objekt, um die es geht.
+      render: text

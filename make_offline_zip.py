@@ -56,8 +56,9 @@ INHALT
   review/vmz_results.json       alle Resultate, maschinenlesbar
 
 Läuft ohne Installation und ohne Internet in jedem aktuellen Browser (Chrome, Edge, Firefox, Safari).
-Internet braucht es nur für die Links zu den Objektseiten der anderen Museen und für den Knopf «Feedback»
-oben rechts: Er öffnet auf GitHub ein Formular für eine Rückmeldung (ein GitHub-Konto ist nötig).
+Internet braucht es nur für die Links zu den Objektseiten der anderen Museen und für Rückmeldungen: Der Knopf
+«Feedback» oben rechts und «Rückmeldung zu diesem Objekt» {feedback}
+Mitgeschickt wird die Online-Adresse der Seite, nicht der Ort der Datei auf dem Computer.
 Auf Smartphones und Tablets besser die Online-Version öffnen.
 
 RECHTE
@@ -160,7 +161,14 @@ def main():
         mkb = re.search(r'<script id="data" type="application/json">(.*?)</script>',
                         (docs / "review" / "mkb.html").read_text(encoding="utf-8"), re.S)
         n_mkb = len(json.loads(mkb.group(1))["obj"]) if mkb else 0
-        readme = README.format(date=datetime.date.today().strftime("%d.%m.%Y"), site=SITE, n=res["n"], n_mkb=n_mkb)
+        # feedback: a form on the page once docs/feedback.js names a relay, else GitHub's form
+        relay = re.search(r"const RELAY_DEFAULT = '([^']+)'", (docs / "feedback.js").read_text(encoding="utf-8"))
+        feedback = ("öffnen ein kleines Formular. Die Rückmeldung wird ein\nöffentliches Issue auf GitHub; "
+                    "ein GitHub-Konto ist nicht nötig." if relay else
+                    "öffnen auf GitHub ein vorausgefülltes Formular\n(ein GitHub-Konto ist nötig; "
+                    "die Rückmeldungen sind öffentlich).")
+        readme = README.format(date=datetime.date.today().strftime("%d.%m.%Y"), site=SITE, n=res["n"], n_mkb=n_mkb,
+                               feedback=feedback)
         (stage / "LIESMICH.txt").write_bytes(("﻿" + readme).replace("\n", "\r\n").encode("utf-8"))  # Notepad
         problems, n_files, n_links = check(stage)
         if problems:

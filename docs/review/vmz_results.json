@@ -166,7 +166,7 @@
    ],
    [
     "warrior figurine",
-    21
+    20
    ],
    [
     "figurine pendant",
@@ -5690,7 +5690,7 @@
      "name": "Stirrer",
      "holder": "The Field Museum of Natural History",
      "publish_image": true,
-     "culture": "Cultural affiliation: Blaan (Note: all instances of either B'laan, Bilaan or Bila-an in the Mapping Database have been changed to Blaan after specific requests from the  Blaan of Sarangani Province June 2022. This would differ from the terminology in the original record, which is considered derogatory by the Blaan. <a href=\"https://philippinestudies.uk/mapping/blaan-resources\" target=\"_blank\" rel=\"noreferrer noopener\">Read more...</a>)",
+     "culture": "Cultural affiliation: Blaan (Note: all instances of either B'laan, Bilaan or Bila-an in the Mapping Database have been changed to Blaan after specific requests from the Blaan of Sarangani Province June 2022. This would differ from the terminology in the original record, which is considered derogatory by the Blaan. Read more...)",
      "url": "https://philippinestudies.uk/mapping/items/show/27294",
      "img": "img/phil_27294.jpg",
      "licence": "unknown (rights of holding museum)",
@@ -20728,7 +20728,7 @@
      "count": 1
     },
     {
-     "name": "Finial with hills and animals (<em>boshan</em>)",
+     "name": "Finial with hills and animals (boshan)",
      "count": 1
     },
     {
@@ -20784,7 +20784,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189248-1",
-     "name": "Finial with hills and animals (<em>boshan</em>)",
+     "name": "Finial with hills and animals (boshan)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -21024,7 +21024,7 @@
      "count": 1
     },
     {
-     "name": "Ritual wine container with lid (<em>you</em>)",
+     "name": "Ritual wine container with lid (you)",
      "count": 1
     }
    ],
@@ -21087,7 +21087,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187742-1",
-     "name": "Ritual wine container with lid (<em>you</em>)",
+     "name": "Ritual wine container with lid (you)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -21109,7 +21109,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187743-0",
-     "name": "Ritual vessel (<em>you</em>) and cover",
+     "name": "Ritual vessel (you) and cover",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -21161,7 +21161,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187742-1",
-     "name": "Ritual wine container with lid (<em>you</em>)",
+     "name": "Ritual wine container with lid (you)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1911.36a-b/",
@@ -21183,7 +21183,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187743-0",
-     "name": "Ritual vessel (<em>you</em>) and cover",
+     "name": "Ritual vessel (you) and cover",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1911.37a-b/",
@@ -21683,7 +21683,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189353-0",
-     "name": "Arc-shaped pendant (<em>huang</em> ç)",
+     "name": "Arc-shaped pendant (huang 璜)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1916.156/",
@@ -28822,7 +28822,7 @@
      "count": 3
     },
     {
-     "name": "Harvesting knife (<em>hu</em> ç¬), fragment",
+     "name": "Harvesting knife (hu 笏), fragment",
      "count": 2
     },
     {
@@ -28834,7 +28834,7 @@
      "count": 1
     },
     {
-     "name": "Dagger-axe (<em>ge</em> æ)",
+     "name": "Dagger-axe (ge 戈)",
      "count": 1
     }
    ],
@@ -28853,7 +28853,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188921-1",
-     "name": "Tongue amulet in the form of a cicada (<em>hanchan</em>)",
+     "name": "Tongue amulet in the form of a cicada (hanchan)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -28864,7 +28864,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188921-0",
-     "name": "Tongue amulet in the form of a cicada (<em>hanchan</em>)",
+     "name": "Tongue amulet in the form of a cicada (hanchan)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -28897,7 +28897,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390202065-1",
-     "name": "Dagger-axe (<em>ge</em> æ)",
+     "name": "Dagger-axe (ge 戈)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -28919,7 +28919,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390190282-0",
-     "name": "Harvesting knife (<em>hu</em> ç¬), fragment",
+     "name": "Harvesting knife (hu 笏), fragment",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -28949,7 +28949,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188921-1",
-     "name": "Tongue amulet in the form of a cicada (<em>hanchan</em>)",
+     "name": "Tongue amulet in the form of a cicada (hanchan)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1914.102/",
@@ -28960,7 +28960,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188921-0",
-     "name": "Tongue amulet in the form of a cicada (<em>hanchan</em>)",
+     "name": "Tongue amulet in the form of a cicada (hanchan)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1914.101/",
@@ -28982,7 +28982,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390202065-1",
-     "name": "Dagger-axe (<em>ge</em> æ)",
+     "name": "Dagger-axe (ge 戈)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/FSC-S-23/",
@@ -28993,7 +28993,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390190282-0",
-     "name": "Harvesting knife (<em>hu</em> ç¬), fragment",
+     "name": "Harvesting knife (hu 笏), fragment",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1917.392/",
@@ -29015,7 +29015,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189356-0",
-     "name": "Harvesting knife (<em>hu</em> ç¬), fragment",
+     "name": "Harvesting knife (hu 笏), fragment",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Longshan culture; Chinese",
      "url": "https://asia.si.edu/object/F1916.160/",
@@ -42371,7 +42371,7 @@
      "count": 1
     },
     {
-     "name": "Garment hook (<em>daigou</em>), fragment",
+     "name": "Garment hook (daigou), fragment",
      "count": 1
     },
     {
@@ -42405,7 +42405,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189575-0",
-     "name": "Garment hook (<em>daigou</em>), fragment",
+     "name": "Garment hook (daigou), fragment",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -43108,7 +43108,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390192357-0",
-     "name": "Ritual wine ewer (<em>gong</em>) with masks (<em>taotie</em>), dragons, and real animals",
+     "name": "Ritual wine ewer (gong) with masks (taotie), dragons, and real animals",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1961.33a-b/",
@@ -43779,7 +43779,7 @@
    ],
    "neighbour_names": [
     {
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "count": 2
     },
     {
@@ -43884,7 +43884,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189392-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -46837,7 +46837,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390184834-1",
-     "name": "Eleven-headed Bodhisattva Avalokiteshvara (JÅ«ichimen Kannon)",
+     "name": "Eleven-headed Bodhisattva Avalokiteshvara (Jūichimen Kannon)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Japanese",
      "url": "https://asia.si.edu/object/F1904.350/",
@@ -47237,11 +47237,11 @@
     }
    ],
    "en_terms": [
+    "seated shijia buddha",
     "seated amitabha",
     "buddhist figure",
     "seated buddha",
-    "buddhist sculpture",
-    "bodhisattva"
+    "buddhist sculpture"
    ],
    "neighbour_names": [
     {
@@ -47249,7 +47249,7 @@
      "count": 2
     },
     {
-     "name": "Seated <em>Shijia</em> Buddha (<em>Shakyamuni</em>)",
+     "name": "Seated Shijia Buddha (Shakyamuni)",
      "count": 1
     },
     {
@@ -47273,7 +47273,7 @@
    "neighbours": [
     {
      "id": "si_ld1-1643390182193-1643390188657-0",
-     "name": "Seated <em>Shijia</em> Buddha (<em>Shakyamuni</em>)",
+     "name": "Seated Shijia Buddha (Shakyamuni)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Chinese",
@@ -47328,7 +47328,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390186673-0",
-     "name": "Seated Buddha (<em>Shakyamuni</em>) with standing bodhisattvas",
+     "name": "Seated Buddha (Shakyamuni) with standing bodhisattvas",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Chinese",
@@ -47369,7 +47369,7 @@
    "neighbours_geo": [
     {
      "id": "si_ld1-1643390182193-1643390188657-0",
-     "name": "Seated <em>Shijia</em> Buddha (<em>Shakyamuni</em>)",
+     "name": "Seated Shijia Buddha (Shakyamuni)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Chinese",
      "url": "https://asia.si.edu/object/F1912.86/",
@@ -47424,7 +47424,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390186673-0",
-     "name": "Seated Buddha (<em>Shakyamuni</em>) with standing bodhisattvas",
+     "name": "Seated Buddha (Shakyamuni) with standing bodhisattvas",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Chinese",
      "url": "https://asia.si.edu/object/F1909.285/",
@@ -48069,7 +48069,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188223-0",
-     "name": "Seated <em>Shijia</em> Buddha (<em>Shakyamuni</em>)",
+     "name": "Seated Shijia Buddha (Shakyamuni)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Chinese",
      "url": "https://asia.si.edu/object/F1911.418/",
@@ -49302,7 +49302,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189789-0",
-     "name": "Brocade, silk. Buddhist monk's stole (ohi è¢«)",
+     "name": "Brocade, silk. Buddhist monk's stole (ohi 被)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Japanese",
      "url": "https://asia.si.edu/object/F1916.686h/",
@@ -49631,7 +49631,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189789-0",
-     "name": "Brocade, silk. Buddhist monk's stole (ohi è¢«)",
+     "name": "Brocade, silk. Buddhist monk's stole (ohi 被)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Japanese",
      "url": "https://asia.si.edu/object/F1916.686h/",
@@ -49642,7 +49642,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189795-0",
-     "name": "Brocade, silk. Buddhist monk's stole (ohi è¢«)",
+     "name": "Brocade, silk. Buddhist monk's stole (ohi 被)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Japanese",
      "url": "https://asia.si.edu/object/F1916.686o/",
@@ -53007,7 +53007,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390185971-0",
-     "name": "One of the twelve deva: Nit'-ten (<em>Surya</em>)",
+     "name": "One of the twelve deva: Nit'-ten (Surya)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Japanese",
@@ -55420,7 +55420,7 @@
      "count": 2
     },
     {
-     "name": "Disk (<em>bi</em> ç§)",
+     "name": "Disk (bi 璧)",
      "count": 2
     },
     {
@@ -55432,7 +55432,7 @@
      "count": 1
     },
     {
-     "name": "Three-tier tube (<em>cong</em> ç®) with masks",
+     "name": "Three-tier tube (cong 琮) with masks",
      "count": 1
     }
    ],
@@ -55495,7 +55495,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189924-0",
-     "name": "Three-tier tube (<em>cong</em> ç®) with masks",
+     "name": "Three-tier tube (cong 琮) with masks",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese; Liangzhu culture",
@@ -56061,7 +56061,7 @@
      "count": 1
     },
     {
-     "name": "Three-tier tube (<em>cong</em> ç®) with masks",
+     "name": "Three-tier tube (cong 琮) with masks",
      "count": 1
     },
     {
@@ -56092,7 +56092,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189924-0",
-     "name": "Three-tier tube (<em>cong</em> ç®) with masks",
+     "name": "Three-tier tube (cong 琮) with masks",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese; Liangzhu culture",
@@ -56313,7 +56313,7 @@
      "count": 1
     },
     {
-     "name": "Two-tier tube (<em>cong</em> ç®) with masks",
+     "name": "Two-tier tube (cong 琮) with masks",
      "count": 1
     },
     {
@@ -56321,7 +56321,7 @@
      "count": 1
     },
     {
-     "name": "Three-tier tube (<em>cong</em> ç®) with masks",
+     "name": "Three-tier tube (cong 琮) with masks",
      "count": 1
     }
    ],
@@ -56351,7 +56351,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390190235-0",
-     "name": "Two-tier tube (<em>cong</em> ç®) with masks",
+     "name": "Two-tier tube (cong 琮) with masks",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese; Liangzhu culture",
@@ -56373,7 +56373,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189924-0",
-     "name": "Three-tier tube (<em>cong</em> ç®) with masks",
+     "name": "Three-tier tube (cong 琮) with masks",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese; Liangzhu culture",
@@ -57542,11 +57542,11 @@
     }
    ],
    "en_terms": [
+    "dragons and clouds",
     "belt plaque",
     "belt hook",
     "chariot or harness fitting",
-    "triratna pendant",
-    "belt buckle"
+    "triratna pendant"
    ],
    "neighbour_names": [
     {
@@ -57554,7 +57554,7 @@
      "count": 5
     },
     {
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "count": 3
     },
     {
@@ -57574,7 +57574,7 @@
    "neighbours": [
     {
      "id": "si_ld1-1643390182193-1643390189030-1",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -57651,7 +57651,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188747-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -57670,7 +57670,7 @@
    "neighbours_geo": [
     {
      "id": "si_ld1-1643390182193-1643390189030-1",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1915.78a-b/",
@@ -57692,7 +57692,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188747-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1913.97/",
@@ -62296,7 +62296,7 @@
      "name": "Weight",
      "holder": "Smithsonian – National Museum of African Art",
      "publish_image": true,
-     "culture": "CÃ´te d'Ivoire; Ghana",
+     "culture": "Côte d'Ivoire; Ghana",
      "url": "",
      "img": "img/si_ld1-1643621402936-1643621406363-0.jpg",
      "licence": "CC0",
@@ -62318,7 +62318,7 @@
      "name": "Weight",
      "holder": "Smithsonian – National Museum of African Art",
      "publish_image": true,
-     "culture": "CÃ´te d'Ivoire; Ghana",
+     "culture": "Côte d'Ivoire; Ghana",
      "url": "",
      "img": "img/si_ld1-1643621402936-1643621406363-1.jpg",
      "licence": "CC0",
@@ -66627,7 +66627,7 @@
      "name": "Ifugao Hip Bag (Butung or Butong)",
      "holder": "Findspot\r\nFound/Acquired: Luzon (North)\r\nAsia: Southeast Asia: Philippines: Luzon",
      "publish_image": true,
-     "culture": "Production ethnic group Made by: Igorot <br /><br />BM Annotation June 2021:<strong> Ifugao</strong> textiles The Ifugao are found in the Cordillera region on Luzon island in the Philippines. <br /><br />Marian Roces Annotation: July 2021 Ifugao textiles The Ifugao is the collective <strong>name of speakers of four related languages</strong>: Ifugao Amganad, Ifugao Batad, Ifugao Mayoyao, and Ifugao Tuwali. They live in contiguous mountain geographies in the Central Cordilleras of the northern part of the island of Luzon, the Philippines.",
+     "culture": "Production ethnic group Made by: Igorot BM Annotation June 2021: Ifugao textiles The Ifugao are found in the Cordillera region on Luzon island in the Philippines. Marian Roces Annotation: July 2021 Ifugao textiles The Ifugao is the collective name of speakers of four related languages: Ifugao Amganad, Ifugao Batad, Ifugao Mayoyao, and Ifugao Tuwali. They live in contiguous mountain geographies in the Central Cordilleras of the northern part of the island of Luzon, the Philippines.",
      "url": "https://philippinestudies.uk/mapping/items/show/14936",
      "img": "img/phil_14936.jpg",
      "licence": "unknown (rights of holding museum)",
@@ -68284,7 +68284,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189435-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1916.264a-b/",
@@ -68295,7 +68295,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189042-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1915.95/",
@@ -70357,7 +70357,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189621-0",
-     "name": "Straight chisel (<em>gui</em>) with raised uniform curls arranged in a grid",
+     "name": "Straight chisel (gui) with raised uniform curls arranged in a grid",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1916.496/",
@@ -71251,7 +71251,7 @@
    "neighbours_geo": [
     {
      "id": "si_ld1-1643390182193-1643390189790-0",
-     "name": "Brocade, silk. Buddhist monk's stole (ohi è¢«)",
+     "name": "Brocade, silk. Buddhist monk's stole (ohi 被)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Japanese",
      "url": "https://asia.si.edu/object/F1916.686i/",
@@ -71284,7 +71284,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189795-0",
-     "name": "Brocade, silk. Buddhist monk's stole (ohi è¢«)",
+     "name": "Brocade, silk. Buddhist monk's stole (ohi 被)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Japanese",
      "url": "https://asia.si.edu/object/F1916.686o/",
@@ -73156,7 +73156,7 @@
      "count": 1
     },
     {
-     "name": "Ritual vessel (<em>you</em>) and cover",
+     "name": "Ritual vessel (you) and cover",
      "count": 1
     }
    ],
@@ -73208,7 +73208,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187743-0",
-     "name": "Ritual vessel (<em>you</em>) and cover",
+     "name": "Ritual vessel (you) and cover",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -73260,7 +73260,7 @@
    "neighbours_geo": [
     {
      "id": "si_ld1-1643390182193-1643390187743-0",
-     "name": "Ritual vessel (<em>you</em>) and cover",
+     "name": "Ritual vessel (you) and cover",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1911.37a-b/",
@@ -73282,7 +73282,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187742-1",
-     "name": "Ritual wine container with lid (<em>you</em>)",
+     "name": "Ritual wine container with lid (you)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1911.36a-b/",
@@ -73577,7 +73577,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390203101-0",
-     "name": "One of a set of bells (<em>bo</em>) with felines and dragons",
+     "name": "One of a set of bells (bo) with felines and dragons",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/S1987.282/",
@@ -73704,7 +73704,7 @@
    ],
    "neighbour_names": [
     {
-     "name": "Garment hook (<em>gou</em>)",
+     "name": "Garment hook (gou)",
      "count": 4
     },
     {
@@ -73776,7 +73776,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189086-0",
-     "name": "Garment hook (<em>gou</em>)",
+     "name": "Garment hook (gou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -73787,7 +73787,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189437-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -73798,7 +73798,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189115-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -73861,7 +73861,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189086-0",
-     "name": "Garment hook (<em>gou</em>)",
+     "name": "Garment hook (gou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1915.147/",
@@ -73872,7 +73872,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189111-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1915.177/",
@@ -73883,7 +73883,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189437-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1916.266/",
@@ -73894,7 +73894,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189115-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1915.182/",
@@ -73988,7 +73988,7 @@
    ],
    "neighbour_names": [
     {
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "count": 3
     },
     {
@@ -74027,7 +74027,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189115-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -74049,7 +74049,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189086-0",
-     "name": "Garment hook (<em>gou</em>)",
+     "name": "Garment hook (gou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -74112,7 +74112,7 @@
    "neighbours_geo": [
     {
      "id": "si_ld1-1643390182193-1643390189115-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1915.182/",
@@ -74134,7 +74134,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189086-0",
-     "name": "Garment hook (<em>gou</em>)",
+     "name": "Garment hook (gou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1915.147/",
@@ -74189,7 +74189,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189042-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1915.95/",
@@ -74272,7 +74272,7 @@
    ],
    "neighbour_names": [
     {
-     "name": "Dagger-axe (<em>ge</em>)",
+     "name": "Dagger-axe (ge)",
      "count": 7
     },
     {
@@ -74300,7 +74300,7 @@
    "neighbours": [
     {
      "id": "si_ld1-1643390182193-1643390188555-0",
-     "name": "Dagger-axe (<em>ge</em>)",
+     "name": "Dagger-axe (ge)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -74322,7 +74322,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187763-0",
-     "name": "Dagger-axe (<em>ge</em>)",
+     "name": "Dagger-axe (ge)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -74333,7 +74333,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189441-0",
-     "name": "Dagger-axe (<em>ge</em>)",
+     "name": "Dagger-axe (ge)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -74344,7 +74344,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189253-0",
-     "name": "Dagger-axe (<em>ge</em>) with snake",
+     "name": "Dagger-axe (ge) with snake",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -74355,7 +74355,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187762-0",
-     "name": "Dagger-axe (<em>ge</em>)",
+     "name": "Dagger-axe (ge)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -74366,7 +74366,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189440-1",
-     "name": "Dagger-axe (<em>ge</em>)",
+     "name": "Dagger-axe (ge)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -74377,7 +74377,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390192899-0",
-     "name": "Dagger-axe (<em>ge</em>)",
+     "name": "Dagger-axe (ge)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -74396,7 +74396,7 @@
    "neighbours_geo": [
     {
      "id": "si_ld1-1643390182193-1643390188555-0",
-     "name": "Dagger-axe (<em>ge</em>)",
+     "name": "Dagger-axe (ge)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1911.618/",
@@ -74418,7 +74418,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187763-0",
-     "name": "Dagger-axe (<em>ge</em>)",
+     "name": "Dagger-axe (ge)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1911.65/",
@@ -74429,7 +74429,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189441-0",
-     "name": "Dagger-axe (<em>ge</em>)",
+     "name": "Dagger-axe (ge)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1916.271/",
@@ -74440,7 +74440,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189253-0",
-     "name": "Dagger-axe (<em>ge</em>) with snake",
+     "name": "Dagger-axe (ge) with snake",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1916.28/",
@@ -74451,7 +74451,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187762-0",
-     "name": "Dagger-axe (<em>ge</em>)",
+     "name": "Dagger-axe (ge)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1911.64/",
@@ -74462,7 +74462,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189440-1",
-     "name": "Dagger-axe (<em>ge</em>)",
+     "name": "Dagger-axe (ge)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1916.270a-b/",
@@ -79686,7 +79686,7 @@
      "count": 1
     },
     {
-     "name": "The Buddha addressing Yamaraja at Kusinagara éè¿¦çå°¼ä½æå",
+     "name": "The Buddha addressing Yamaraja at Kusinagara 釋迦牟尼佛會圖",
      "count": 1
     },
     {
@@ -79728,7 +79728,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390191221-0",
-     "name": "The Buddha addressing Yamaraja at Kusinagara éè¿¦çå°¼ä½æå",
+     "name": "The Buddha addressing Yamaraja at Kusinagara 釋迦牟尼佛會圖",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Chinese",
@@ -79846,7 +79846,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390191221-0",
-     "name": "The Buddha addressing Yamaraja at Kusinagara éè¿¦çå°¼ä½æå",
+     "name": "The Buddha addressing Yamaraja at Kusinagara 釋迦牟尼佛會圖",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Chinese",
      "url": "https://asia.si.edu/object/F1926.1/",
@@ -80388,7 +80388,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390184616-0",
-     "name": "Medicine case (<em>inro</em>)",
+     "name": "Medicine case (inro)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Japanese",
      "url": "https://asia.si.edu/object/F1904.47/",
@@ -80468,8 +80468,8 @@
     "a princess and demons before a nobleman",
     "daoist immortal on a qilin and two attendants",
     "bodhidharma crossing the yangzi on a reed",
-    "six immortals",
-    "the two immortals"
+    "zhongli quan seeking the dao",
+    "six immortals"
    ],
    "neighbour_names": [
     {
@@ -90091,7 +90091,7 @@
      "name": "Stirrer",
      "holder": "The Field Museum of Natural History",
      "publish_image": true,
-     "culture": "Cultural affiliation: Blaan (Note: all instances of either B'laan, Bilaan or Bila-an in the Mapping Database have been changed to Blaan after specific requests from the  Blaan of Sarangani Province June 2022. This would differ from the terminology in the original record, which is considered derogatory by the Blaan. <a href=\"https://philippinestudies.uk/mapping/blaan-resources\" target=\"_blank\" rel=\"noreferrer noopener\">Read more...</a>)",
+     "culture": "Cultural affiliation: Blaan (Note: all instances of either B'laan, Bilaan or Bila-an in the Mapping Database have been changed to Blaan after specific requests from the Blaan of Sarangani Province June 2022. This would differ from the terminology in the original record, which is considered derogatory by the Blaan. Read more...)",
      "url": "https://philippinestudies.uk/mapping/items/show/27294",
      "img": "img/phil_27294.jpg",
      "licence": "unknown (rights of holding museum)",
@@ -92584,7 +92584,7 @@
      "count": 1
     },
     {
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "count": 1
     }
    ],
@@ -93649,7 +93649,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189091-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1915.153/",
@@ -93660,7 +93660,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390192021-0",
-     "name": "Garment hook (<em>daigou</em>) with geometric decoration",
+     "name": "Garment hook (daigou) with geometric decoration",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1949.25/",
@@ -94258,7 +94258,7 @@
      "count": 1
     },
     {
-     "name": "Ferrule (<em>zun</em>)",
+     "name": "Ferrule (zun)",
      "count": 1
     },
     {
@@ -94314,7 +94314,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390192902-0",
-     "name": "Ferrule (<em>zun</em>)",
+     "name": "Ferrule (zun)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -105753,7 +105753,7 @@
      "count": 2
     },
     {
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "count": 1
     },
     {
@@ -105777,7 +105777,7 @@
    "neighbours": [
     {
      "id": "si_ld1-1643390182193-1643390189395-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -105846,7 +105846,7 @@
      "name": "Stirrer",
      "holder": "The Field Museum of Natural History",
      "publish_image": true,
-     "culture": "Cultural affiliation: Blaan (Note: all instances of either B'laan, Bilaan or Bila-an in the Mapping Database have been changed to Blaan after specific requests from the  Blaan of Sarangani Province June 2022. This would differ from the terminology in the original record, which is considered derogatory by the Blaan. <a href=\"https://philippinestudies.uk/mapping/blaan-resources\" target=\"_blank\" rel=\"noreferrer noopener\">Read more...</a>)",
+     "culture": "Cultural affiliation: Blaan (Note: all instances of either B'laan, Bilaan or Bila-an in the Mapping Database have been changed to Blaan after specific requests from the Blaan of Sarangani Province June 2022. This would differ from the terminology in the original record, which is considered derogatory by the Blaan. Read more...)",
      "url": "https://philippinestudies.uk/mapping/items/show/27294",
      "img": "img/phil_27294.jpg",
      "licence": "unknown (rights of holding museum)",
@@ -107885,7 +107885,7 @@
      "count": 2
     },
     {
-     "name": "Lidded food cauldron (<em>ding</em>) with painted decoration",
+     "name": "Lidded food cauldron (ding) with painted decoration",
      "count": 1
     },
     {
@@ -107916,7 +107916,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390192479-0",
-     "name": "Lidded food cauldron (<em>ding</em>) with painted decoration",
+     "name": "Lidded food cauldron (ding) with painted decoration",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -108001,7 +108001,7 @@
    "neighbours_geo": [
     {
      "id": "si_ld1-1643390182193-1643390192479-0",
-     "name": "Lidded food cauldron (<em>ding</em>) with painted decoration",
+     "name": "Lidded food cauldron (ding) with painted decoration",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1968.34a-b/",
@@ -108012,7 +108012,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390192357-0",
-     "name": "Ritual wine ewer (<em>gong</em>) with masks (<em>taotie</em>), dragons, and real animals",
+     "name": "Ritual wine ewer (gong) with masks (taotie), dragons, and real animals",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1961.33a-b/",
@@ -115970,11 +115970,11 @@
    ],
    "neighbour_names": [
     {
-     "name": "One of the twelve deva: Sui-ten (<em>Varuna</em>)",
+     "name": "One of the twelve deva: Sui-ten (Varuna)",
      "count": 2
     },
     {
-     "name": "Buddhist deity: Gokei Monju (<em>Manjushri</em>)",
+     "name": "Buddhist deity: Gokei Monju (Manjushri)",
      "count": 2
     },
     {
@@ -115986,7 +115986,7 @@
      "count": 1
     },
     {
-     "name": "Thousand-armed thousand-eyed bodhisattva Avalokiteshvara (Guanyin) æ ä½å ãåæåç¼è§ä¸é³è©è©åã è»¸",
+     "name": "Thousand-armed thousand-eyed bodhisattva Avalokiteshvara (Guanyin) 明 佚名 《千手千眼觀世音菩薩像》 軸",
      "count": 1
     },
     {
@@ -116009,7 +116009,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390185974-0",
-     "name": "One of the twelve deva: Sui-ten (<em>Varuna</em>)",
+     "name": "One of the twelve deva: Sui-ten (Varuna)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Japanese",
@@ -116020,7 +116020,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188064-0",
-     "name": "Buddhist deity: Gokei Monju (<em>Manjushri</em>)",
+     "name": "Buddhist deity: Gokei Monju (Manjushri)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Japanese",
@@ -116053,7 +116053,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390185975-1",
-     "name": "One of the twelve deva: Bishamon-ten (<em>Vaisravana</em>)",
+     "name": "One of the twelve deva: Bishamon-ten (Vaisravana)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Japanese",
@@ -116064,7 +116064,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189962-0",
-     "name": "Thousand-armed thousand-eyed bodhisattva Avalokiteshvara (Guanyin) æ ä½å ãåæåç¼è§ä¸é³è©è©åã è»¸",
+     "name": "Thousand-armed thousand-eyed bodhisattva Avalokiteshvara (Guanyin) 明 佚名 《千手千眼觀世音菩薩像》 軸",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Chinese",
@@ -117293,7 +117293,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390192902-1",
-     "name": "Ferrule (<em>zun</em>)",
+     "name": "Ferrule (zun)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1979.12/",
@@ -118675,7 +118675,7 @@
      "count": 1
     },
     {
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "count": 1
     },
     {
@@ -118720,7 +118720,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189429-1",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -122190,7 +122190,7 @@
      "name": "Stirrer",
      "holder": "The Field Museum of Natural History",
      "publish_image": true,
-     "culture": "Cultural affiliation: Blaan (Note: all instances of either B'laan, Bilaan or Bila-an in the Mapping Database have been changed to Blaan after specific requests from the  Blaan of Sarangani Province June 2022. This would differ from the terminology in the original record, which is considered derogatory by the Blaan. <a href=\"https://philippinestudies.uk/mapping/blaan-resources\" target=\"_blank\" rel=\"noreferrer noopener\">Read more...</a>)",
+     "culture": "Cultural affiliation: Blaan (Note: all instances of either B'laan, Bilaan or Bila-an in the Mapping Database have been changed to Blaan after specific requests from the Blaan of Sarangani Province June 2022. This would differ from the terminology in the original record, which is considered derogatory by the Blaan. Read more...)",
      "url": "https://philippinestudies.uk/mapping/items/show/27294",
      "img": "img/phil_27294.jpg",
      "licence": "unknown (rights of holding museum)",
@@ -123658,7 +123658,7 @@
      "name": "Stirrer",
      "holder": "The Field Museum of Natural History",
      "publish_image": true,
-     "culture": "Cultural affiliation: Blaan (Note: all instances of either B'laan, Bilaan or Bila-an in the Mapping Database have been changed to Blaan after specific requests from the  Blaan of Sarangani Province June 2022. This would differ from the terminology in the original record, which is considered derogatory by the Blaan. <a href=\"https://philippinestudies.uk/mapping/blaan-resources\" target=\"_blank\" rel=\"noreferrer noopener\">Read more...</a>)",
+     "culture": "Cultural affiliation: Blaan (Note: all instances of either B'laan, Bilaan or Bila-an in the Mapping Database have been changed to Blaan after specific requests from the Blaan of Sarangani Province June 2022. This would differ from the terminology in the original record, which is considered derogatory by the Blaan. Read more...)",
      "url": "https://philippinestudies.uk/mapping/items/show/27294",
      "img": "img/phil_27294.jpg",
      "licence": "unknown (rights of holding museum)",
@@ -128207,7 +128207,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189949-0",
-     "name": "Five-tier tube (<em>cong</em> ç®) with masks",
+     "name": "Five-tier tube (cong 琮) with masks",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese; Liangzhu culture",
      "url": "https://asia.si.edu/object/F1917.95/",
@@ -128218,7 +128218,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390190237-0",
-     "name": "Five-tier tube (<em>cong</em> ç®) with masks",
+     "name": "Five-tier tube (cong 琮) with masks",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese; Liangzhu culture",
      "url": "https://asia.si.edu/object/F1917.368/",
@@ -128251,7 +128251,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390203101-0",
-     "name": "One of a set of bells (<em>bo</em>) with felines and dragons",
+     "name": "One of a set of bells (bo) with felines and dragons",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/S1987.282/",
@@ -130230,7 +130230,7 @@
    "neighbours_geo": [
     {
      "id": "si_ld1-1643390182193-1643390189357-1",
-     "name": "Forked blade (<em>zhang</em> ç)",
+     "name": "Forked blade (zhang 璋)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Longshan culture; Chinese",
      "url": "https://asia.si.edu/object/F1916.162/",
@@ -130263,7 +130263,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189889-0",
-     "name": "Harvesting knife (<em>hu</em> ç¬), probably reworked from a forked blade (<em>zhang</em> ç)",
+     "name": "Harvesting knife (hu 笏), probably reworked from a forked blade (zhang 璋)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1917.25/",
@@ -130307,7 +130307,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390191087-1",
-     "name": "Straight chisel (<em>gui</em> å­), fragment",
+     "name": "Straight chisel (gui 圭), fragment",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1919.53/",
@@ -130974,7 +130974,7 @@
      "count": 2
     },
     {
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "count": 2
     },
     {
@@ -131009,7 +131009,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189091-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -131127,7 +131127,7 @@
    "neighbours_geo": [
     {
      "id": "si_ld1-1643390182193-1643390189091-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1915.153/",
@@ -131149,7 +131149,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189085-1",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1915.146/",
@@ -131193,7 +131193,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189126-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1915.196/",
@@ -131204,7 +131204,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189042-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1915.95/",
@@ -131596,7 +131596,7 @@
      "count": 1
     },
     {
-     "name": "Ritual vessel (<em>you</em>) and cover",
+     "name": "Ritual vessel (you) and cover",
      "count": 1
     },
     {
@@ -131663,7 +131663,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187743-0",
-     "name": "Ritual vessel (<em>you</em>) and cover",
+     "name": "Ritual vessel (you) and cover",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -134234,7 +134234,7 @@
    ],
    "neighbour_names": [
     {
-     "name": "Disk (<em>bi</em>) with raised uniform curls arranged in a grid",
+     "name": "Disk (bi) with raised uniform curls arranged in a grid",
      "count": 5
     },
     {
@@ -134276,7 +134276,7 @@
      "name": "Weight",
      "holder": "Smithsonian – National Museum of African Art",
      "publish_image": true,
-     "culture": "CÃ´te d'Ivoire; Ghana",
+     "culture": "Côte d'Ivoire; Ghana",
      "url": "",
      "img": "img/si_ld1-1643621402936-1643621406369-0.jpg",
      "licence": "CC0",
@@ -134287,7 +134287,7 @@
      "name": "Weight",
      "holder": "Smithsonian – National Museum of African Art",
      "publish_image": true,
-     "culture": "CÃ´te d'Ivoire; Ghana",
+     "culture": "Côte d'Ivoire; Ghana",
      "url": "",
      "img": "img/si_ld1-1643621402936-1643621406365-0.jpg",
      "licence": "CC0",
@@ -134306,7 +134306,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390190723-0",
-     "name": "Disk (<em>bi</em>) with raised uniform curls arranged in a grid",
+     "name": "Disk (bi) with raised uniform curls arranged in a grid",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -134320,7 +134320,7 @@
      "name": "Weight",
      "holder": "Smithsonian – National Museum of African Art",
      "publish_image": true,
-     "culture": "CÃ´te d'Ivoire; Ghana",
+     "culture": "Côte d'Ivoire; Ghana",
      "url": "",
      "img": "img/si_ld1-1643621402936-1643621406363-1.jpg",
      "licence": "CC0",
@@ -134339,7 +134339,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189942-0",
-     "name": "Disk (<em>bi</em> ç§)",
+     "name": "Disk (bi 璧)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese; Liangzhu culture",
@@ -140483,7 +140483,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390192902-0",
-     "name": "Ferrule (<em>zun</em>)",
+     "name": "Ferrule (zun)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1979.11/",
@@ -140773,7 +140773,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390192902-0",
-     "name": "Ferrule (<em>zun</em>)",
+     "name": "Ferrule (zun)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1979.11/",
@@ -141009,7 +141009,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188223-0",
-     "name": "Seated <em>Shijia</em> Buddha (<em>Shakyamuni</em>)",
+     "name": "Seated Shijia Buddha (Shakyamuni)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Chinese",
@@ -141105,7 +141105,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188223-0",
-     "name": "Seated <em>Shijia</em> Buddha (<em>Shakyamuni</em>)",
+     "name": "Seated Shijia Buddha (Shakyamuni)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Chinese",
      "url": "https://asia.si.edu/object/F1911.418/",
@@ -163112,8 +163112,8 @@
     "painting from a kalpa-sutra",
     "stenciled scenes",
     "paintings after ancient masters",
-    "a princess and demons before a nobleman",
-    "the two couples reach a foreign city where they make their home"
+    "scenes from the tale",
+    "a princess and demons before a nobleman"
    ],
    "neighbour_names": [
     {
@@ -163327,9 +163327,9 @@
    "en_terms": [
     "painting from a kalpa-sutra",
     "the two couples reach a foreign city where they make their home",
+    "scenes from the tale",
     "a night scene",
-    "paintings after ancient masters",
-    "stenciled scenes"
+    "paintings after ancient masters"
    ],
    "neighbour_names": [
     {
@@ -163654,7 +163654,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390184067-0",
-     "name": "Ivy vines, bridges and floating fans è¦ã®ç´°éæé¢æµå³å±é¢¨",
+     "name": "Ivy vines, bridges and floating fans 蔦の細道扇面流図屏風",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Japanese",
@@ -164385,10 +164385,10 @@
    ],
    "en_terms": [
     "a prince performs austerities",
+    "scenes from the tale",
     "the heroine who waits anxiously",
     "power figure",
-    "an episode from the story",
-    "a princess and demons before a nobleman"
+    "an episode from the story"
    ],
    "neighbour_names": [
     {
@@ -166292,7 +166292,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390193887-0",
-     "name": "The Tale of Shuten DÅji",
+     "name": "The Tale of Shuten Dōji",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Japanese",
      "url": "https://asia.si.edu/object/F1998.26.2/",
@@ -167166,7 +167166,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390184067-0",
-     "name": "Ivy vines, bridges and floating fans è¦ã®ç´°éæé¢æµå³å±é¢¨",
+     "name": "Ivy vines, bridges and floating fans 蔦の細道扇面流図屏風",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Japanese",
      "url": "https://asia.si.edu/object/F1902.102-103/",
@@ -170272,7 +170272,7 @@
    ],
    "neighbour_names": [
     {
-     "name": "Tongue amulet in the form of a cicada (<em>hanchan</em>)",
+     "name": "Tongue amulet in the form of a cicada (hanchan)",
      "count": 2
     },
     {
@@ -170300,7 +170300,7 @@
    "neighbours": [
     {
      "id": "si_ld1-1643390182193-1643390188921-1",
-     "name": "Tongue amulet in the form of a cicada (<em>hanchan</em>)",
+     "name": "Tongue amulet in the form of a cicada (hanchan)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -170622,7 +170622,7 @@
      "count": 1
     },
     {
-     "name": "Tongue amulet in the form of a cicada (<em>hanchan</em>)",
+     "name": "Tongue amulet in the form of a cicada (hanchan)",
      "count": 1
     }
    ],
@@ -170696,7 +170696,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188921-1",
-     "name": "Tongue amulet in the form of a cicada (<em>hanchan</em>)",
+     "name": "Tongue amulet in the form of a cicada (hanchan)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -190069,7 +190069,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187760-1",
-     "name": "Spearhead (<em>maotou</em>)",
+     "name": "Spearhead (maotou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1911.62/",
@@ -190080,7 +190080,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187761-0",
-     "name": "Spearhead (<em>maotou</em>)",
+     "name": "Spearhead (maotou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1911.63/",
@@ -190334,7 +190334,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189363-0",
-     "name": "Broad chisel (<em>gui</em> å­) , fragment",
+     "name": "Broad chisel (gui 圭) , fragment",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1916.169/",
@@ -190356,7 +190356,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390191071-0",
-     "name": "Axe (<em>fu</em> æ§)",
+     "name": "Axe (fu 斧)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese; Liangzhu culture",
      "url": "https://asia.si.edu/object/F1919.39/",
@@ -190367,7 +190367,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189925-0",
-     "name": "Axe (<em>fu</em> æ§)",
+     "name": "Axe (fu 斧)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese; Liangzhu culture",
      "url": "https://asia.si.edu/object/F1917.66/",
@@ -190378,7 +190378,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189349-1",
-     "name": "Dagger-axe (<em>ge</em>), fragment reworked, with masks, dragon heads, and raised dragon elements",
+     "name": "Dagger-axe (ge), fragment reworked, with masks, dragon heads, and raised dragon elements",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1916.151/",
@@ -190654,7 +190654,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189360-0",
-     "name": "Forked blade (<em>zhang</em> ç)",
+     "name": "Forked blade (zhang 璋)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Erlitou culture; Chinese",
      "url": "https://asia.si.edu/object/F1916.165/",
@@ -190676,7 +190676,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189620-0",
-     "name": "Forked blade (<em>zhang</em> ç)",
+     "name": "Forked blade (zhang 璋)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Longshan culture; Chinese",
      "url": "https://asia.si.edu/object/F1916.495/",
@@ -190687,7 +190687,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390192902-1",
-     "name": "Ferrule (<em>zun</em>)",
+     "name": "Ferrule (zun)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1979.12/",
@@ -190698,7 +190698,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189617-0",
-     "name": "Forked blade (<em>zhang</em> ç)",
+     "name": "Forked blade (zhang 璋)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Longshan culture; Chinese",
      "url": "https://asia.si.edu/object/F1916.491/",
@@ -190941,7 +190941,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189445-0",
-     "name": "Trigger for a cross-bow lock (<em>nu chi</em>)",
+     "name": "Trigger for a cross-bow lock (nu chi)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1916.276/",
@@ -190985,7 +190985,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187753-1",
-     "name": "Draft pole heel plate with mask (<em>taotie</em>) and dragons",
+     "name": "Draft pole heel plate with mask (taotie) and dragons",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1911.52/",
@@ -191007,7 +191007,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189361-1",
-     "name": "Harvesting knife (<em>hu</em> ç¬)",
+     "name": "Harvesting knife (hu 笏)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Longshan culture; Chinese",
      "url": "https://asia.si.edu/object/F1916.167/",
@@ -191253,7 +191253,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189361-1",
-     "name": "Harvesting knife (<em>hu</em> ç¬)",
+     "name": "Harvesting knife (hu 笏)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Longshan culture; Chinese",
      "url": "https://asia.si.edu/object/F1916.167/",
@@ -191286,7 +191286,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189358-0",
-     "name": "Harvesting knife (<em>hu</em> ç¬)",
+     "name": "Harvesting knife (hu 笏)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Longshan culture; Chinese",
      "url": "https://asia.si.edu/object/F1916.163/",
@@ -191297,7 +191297,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189557-0",
-     "name": "Harvesting knife (<em>hu</em> ç¬), fragment",
+     "name": "Harvesting knife (hu 笏), fragment",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Longshan culture; Chinese",
      "url": "https://asia.si.edu/object/F1916.416/",
@@ -191606,7 +191606,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189361-1",
-     "name": "Harvesting knife (<em>hu</em> ç¬)",
+     "name": "Harvesting knife (hu 笏)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Longshan culture; Chinese",
      "url": "https://asia.si.edu/object/F1916.167/",
@@ -191871,7 +191871,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390185972-0",
-     "name": "One of the twelve deva: Kwa-ten (<em>Agni</em>)",
+     "name": "One of the twelve deva: Kwa-ten (Agni)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Japanese",
      "url": "https://asia.si.edu/object/F1907.666/",
@@ -191882,7 +191882,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390185969-1",
-     "name": "One of the 12 deva: Ji-ten (<em>Prthivi</em>)",
+     "name": "One of the 12 deva: Ji-ten (Prthivi)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Japanese",
      "url": "https://asia.si.edu/object/F1907.662/",
@@ -191915,7 +191915,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390193888-0",
-     "name": "The Tale of Shuten DÅji",
+     "name": "The Tale of Shuten Dōji",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Japanese",
      "url": "https://asia.si.edu/object/F1998.26.3/",
@@ -191926,7 +191926,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390185969-0",
-     "name": "One of the twelve deva: Bonten (<em>Brahma</em>)",
+     "name": "One of the twelve deva: Bonten (Brahma)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Japanese",
      "url": "https://asia.si.edu/object/F1907.661/",
@@ -192168,7 +192168,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390185972-0",
-     "name": "One of the twelve deva: Kwa-ten (<em>Agni</em>)",
+     "name": "One of the twelve deva: Kwa-ten (Agni)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Japanese",
      "url": "https://asia.si.edu/object/F1907.666/",
@@ -192201,7 +192201,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390185969-1",
-     "name": "One of the 12 deva: Ji-ten (<em>Prthivi</em>)",
+     "name": "One of the 12 deva: Ji-ten (Prthivi)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Japanese",
      "url": "https://asia.si.edu/object/F1907.662/",
@@ -192212,7 +192212,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390185971-0",
-     "name": "One of the twelve deva: Nit'-ten (<em>Surya</em>)",
+     "name": "One of the twelve deva: Nit'-ten (Surya)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Japanese",
      "url": "https://asia.si.edu/object/F1907.664/",
@@ -192773,7 +192773,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390192902-1",
-     "name": "Ferrule (<em>zun</em>)",
+     "name": "Ferrule (zun)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1979.12/",
@@ -192784,7 +192784,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189435-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1916.264a-b/",
@@ -192993,7 +192993,7 @@
    "neighbours_geo": [
     {
      "id": "si_ld1-1643390182193-1643390189895-0",
-     "name": "Straight chisel (<em>gui</em> å­)",
+     "name": "Straight chisel (gui 圭)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1917.31/",
@@ -193026,7 +193026,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390190282-0",
-     "name": "Harvesting knife (<em>hu</em> ç¬), fragment",
+     "name": "Harvesting knife (hu 笏), fragment",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1917.392/",
@@ -193048,7 +193048,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390191092-0",
-     "name": "Harvesting knife (<em>hu</em> ç¬), fragment",
+     "name": "Harvesting knife (hu 笏), fragment",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Erlitou culture; Chinese",
      "url": "https://asia.si.edu/object/F1919.60/",
@@ -193070,7 +193070,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189894-0",
-     "name": "Harvesting knife (<em>hu</em> ç¬), fragment",
+     "name": "Harvesting knife (hu 笏), fragment",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Longshan culture; Chinese",
      "url": "https://asia.si.edu/object/F1917.30/",
@@ -193290,7 +193290,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390190282-0",
-     "name": "Harvesting knife (<em>hu</em> ç¬), fragment",
+     "name": "Harvesting knife (hu 笏), fragment",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1917.392/",
@@ -194725,8 +194725,8 @@
     "ten bamboo studio painting and calligraphy handbook",
     "ink stick from an imperially commissioned set",
     "a festival at the sumiyoshi shrine",
-    "page from the prasnapradipa",
-    "hanshan and shide"
+    "zhongli quan seeking the dao",
+    "page from the prasnapradipa"
    ],
    "neighbour_names": [
     {
@@ -199266,7 +199266,7 @@
    ],
    "neighbour_names": [
     {
-     "name": "One of the twelve deva: Taishaku-ten (<em>Indra</em>)",
+     "name": "One of the twelve deva: Taishaku-ten (Indra)",
      "count": 2
     },
     {
@@ -199294,7 +199294,7 @@
    "neighbours": [
     {
      "id": "si_ld1-1643390182193-1643390185971-1",
-     "name": "One of the twelve deva: Taishaku-ten (<em>Indra</em>)",
+     "name": "One of the twelve deva: Taishaku-ten (Indra)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Japanese",
@@ -199305,7 +199305,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390185970-0",
-     "name": "One of the twelve deva: Gwat'ten (<em>Candra</em>)",
+     "name": "One of the twelve deva: Gwat'ten (Candra)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Japanese",
@@ -199349,7 +199349,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188064-0",
-     "name": "Buddhist deity: Gokei Monju (<em>Manjushri</em>)",
+     "name": "Buddhist deity: Gokei Monju (Manjushri)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Japanese",
@@ -199390,7 +199390,7 @@
    "neighbours_geo": [
     {
      "id": "si_ld1-1643390182193-1643390185971-1",
-     "name": "One of the twelve deva: Taishaku-ten (<em>Indra</em>)",
+     "name": "One of the twelve deva: Taishaku-ten (Indra)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Japanese",
      "url": "https://asia.si.edu/object/F1907.665/",
@@ -199401,7 +199401,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390185970-0",
-     "name": "One of the twelve deva: Gwat'ten (<em>Candra</em>)",
+     "name": "One of the twelve deva: Gwat'ten (Candra)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Japanese",
      "url": "https://asia.si.edu/object/F1907.663/",
@@ -199467,7 +199467,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188064-0",
-     "name": "Buddhist deity: Gokei Monju (<em>Manjushri</em>)",
+     "name": "Buddhist deity: Gokei Monju (Manjushri)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Japanese",
      "url": "https://asia.si.edu/object/F1911.316/",
@@ -216403,7 +216403,7 @@
      "count": 1
     },
     {
-     "name": "Seated <em>Shijia</em> Buddha (<em>Shakyamuni</em>)",
+     "name": "Seated Shijia Buddha (Shakyamuni)",
      "count": 1
     },
     {
@@ -216470,7 +216470,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188223-0",
-     "name": "Seated <em>Shijia</em> Buddha (<em>Shakyamuni</em>)",
+     "name": "Seated Shijia Buddha (Shakyamuni)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Chinese",
@@ -225264,7 +225264,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390186681-0",
-     "name": "Seated Buddhas, bodisattva (<em>Samantabhadra</em>) with elephant, and other figures",
+     "name": "Seated Buddhas, bodisattva (Samantabhadra) with elephant, and other figures",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Chinese",
@@ -230525,8 +230525,8 @@
     "gift basket",
     "miscellaneous figures",
     "miniature baskets",
-    "miniature basket",
-    "offering group"
+    "scenes from the tale",
+    "miniature basket"
    ],
    "neighbour_names": [
     {
@@ -234138,7 +234138,7 @@
      "count": 1
     },
     {
-     "name": "Seated Buddhas, bodisattva (<em>Samantabhadra</em>) with elephant, and other figures",
+     "name": "Seated Buddhas, bodisattva (Samantabhadra) with elephant, and other figures",
      "count": 1
     },
     {
@@ -234173,7 +234173,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390186681-0",
-     "name": "Seated Buddhas, bodisattva (<em>Samantabhadra</em>) with elephant, and other figures",
+     "name": "Seated Buddhas, bodisattva (Samantabhadra) with elephant, and other figures",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Chinese",
@@ -244009,7 +244009,7 @@
    ],
    "neighbour_names": [
     {
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "count": 9
     },
     {
@@ -244040,7 +244040,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189107-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -244051,7 +244051,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189111-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -244062,7 +244062,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189086-0",
-     "name": "Garment hook (<em>gou</em>)",
+     "name": "Garment hook (gou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -244073,7 +244073,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189437-0",
-     "name": "Garment hook (<em>daigou</em>)",
+     "name": "Garment hook (daigou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -244106,7 +244106,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189389-0",
-     "name": "Garment hook (<em>gou</em>)",
+     "name": "Garment hook (gou)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -246338,7 +246338,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390185973-1",
-     "name": "One of the twelve deva: Rasetsu-ten (<em>Raksasa</em>, specifically <em>Nirrti</em>)",
+     "name": "One of the twelve deva: Rasetsu-ten (Raksasa, specifically Nirrti)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Japanese",
      "url": "https://asia.si.edu/object/F1907.668/",
@@ -260135,7 +260135,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189586-0",
-     "name": "Qin tuning key (<em>qin zhenyao</em>) with tiger and snake",
+     "name": "Qin tuning key (qin zhenyao) with tiger and snake",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1916.454/",
@@ -262690,11 +262690,11 @@
     }
    ],
    "en_terms": [
+    "seated shijia buddha",
     "seated luohan",
     "seated buddha",
     "seated amitabha",
-    "buddha",
-    "maitreya"
+    "buddha"
    ],
    "neighbour_names": [
     {
@@ -262899,7 +262899,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188657-0",
-     "name": "Seated <em>Shijia</em> Buddha (<em>Shakyamuni</em>)",
+     "name": "Seated Shijia Buddha (Shakyamuni)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Chinese",
      "url": "https://asia.si.edu/object/F1912.86/",
@@ -263570,7 +263570,7 @@
      "count": 1
     },
     {
-     "name": "Standing figure of LÃ¼ Dongbin",
+     "name": "Standing figure of Lü Dongbin",
      "count": 1
     }
    ],
@@ -263633,7 +263633,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189699-0",
-     "name": "Standing figure of LÃ¼ Dongbin",
+     "name": "Standing figure of Lü Dongbin",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -263751,7 +263751,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189699-0",
-     "name": "Standing figure of LÃ¼ Dongbin",
+     "name": "Standing figure of Lü Dongbin",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1916.580/",
@@ -264114,7 +264114,7 @@
     "the guitar player",
     "bodhidharma crossing the yangzi on a reed",
     "the two immortals",
-    "seated em shijia"
+    "sake pourers"
    ],
    "neighbour_names": [
     {
@@ -265400,7 +265400,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188708-1",
-     "name": "Standing Bodhisattva Guanyin (<em>Sanskrit Avalokiteshvara</em>)",
+     "name": "Standing Bodhisattva Guanyin (Sanskrit Avalokiteshvara)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Chinese",
      "url": "https://asia.si.edu/object/F1913.42a-e/",
@@ -265717,7 +265717,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188708-1",
-     "name": "Standing Bodhisattva Guanyin (<em>Sanskrit Avalokiteshvara</em>)",
+     "name": "Standing Bodhisattva Guanyin (Sanskrit Avalokiteshvara)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Chinese",
      "url": "https://asia.si.edu/object/F1913.42a-e/",
@@ -265814,11 +265814,11 @@
     }
    ],
    "en_terms": [
+    "seated shijia buddha",
     "seated luohan",
     "naga-enthroned buddha",
     "buddhist figure",
-    "buddhist deity",
-    "seated guanyin"
+    "buddhist deity"
    ],
    "neighbour_names": [
     {
@@ -266122,7 +266122,7 @@
      "count": 2
     },
     {
-     "name": "Eleven-headed Bodhisattva Avalokiteshvara (JÅ«ichimen Kannon)",
+     "name": "Eleven-headed Bodhisattva Avalokiteshvara (Jūichimen Kannon)",
      "count": 1
     },
     {
@@ -266134,7 +266134,7 @@
    "neighbours": [
     {
      "id": "si_ld1-1643390182193-1643390187862-0",
-     "name": "Eleven-headed Bodhisattva Avalokiteshvara (JÅ«ichimen Kannon)",
+     "name": "Eleven-headed Bodhisattva Avalokiteshvara (Jūichimen Kannon)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Japanese",
@@ -266230,7 +266230,7 @@
    "neighbours_geo": [
     {
      "id": "si_ld1-1643390182193-1643390187862-0",
-     "name": "Eleven-headed Bodhisattva Avalokiteshvara (JÅ«ichimen Kannon)",
+     "name": "Eleven-headed Bodhisattva Avalokiteshvara (Jūichimen Kannon)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Japanese",
      "url": "https://asia.si.edu/object/F1911.159a-d/",
@@ -267254,7 +267254,7 @@
      "count": 1
     },
     {
-     "name": "Finial with hills and animals (<em>boshan</em>)",
+     "name": "Finial with hills and animals (boshan)",
      "count": 1
     },
     {
@@ -267292,7 +267292,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390189248-1",
-     "name": "Finial with hills and animals (<em>boshan</em>)",
+     "name": "Finial with hills and animals (boshan)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Chinese",
@@ -267336,7 +267336,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187808-0",
-     "name": "Seated Prabhutaratna Buddhas (<em>duobao</em>) with seated Shakyamuni (verso)",
+     "name": "Seated Prabhutaratna Buddhas (duobao) with seated Shakyamuni (verso)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Chinese",
@@ -267366,7 +267366,7 @@
    "neighbours_geo": [
     {
      "id": "si_ld1-1643390182193-1643390189248-1",
-     "name": "Finial with hills and animals (<em>boshan</em>)",
+     "name": "Finial with hills and animals (boshan)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1916.21/",
@@ -267377,7 +267377,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187808-0",
-     "name": "Seated Prabhutaratna Buddhas (<em>duobao</em>) with seated Shakyamuni (verso)",
+     "name": "Seated Prabhutaratna Buddhas (duobao) with seated Shakyamuni (verso)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Chinese",
      "url": "https://asia.si.edu/object/F1911.128/",
@@ -267399,7 +267399,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390192902-0",
-     "name": "Ferrule (<em>zun</em>)",
+     "name": "Ferrule (zun)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Chinese",
      "url": "https://asia.si.edu/object/F1979.11/",
@@ -267421,7 +267421,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187807-0",
-     "name": "The Buddhas Duobao (<em>Sanskrit Prabhutaratna</em>) and Sakyamuni",
+     "name": "The Buddhas Duobao (Sanskrit Prabhutaratna) and Sakyamuni",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Chinese",
      "url": "https://asia.si.edu/object/F1911.127/",
@@ -267520,9 +267520,9 @@
    "en_terms": [
     "snuff bottle",
     "bodhisattva guanyin",
+    "seated shijia buddha",
     "seated guanyin",
-    "seated amitabha",
-    "sakyamuni buddha"
+    "seated amitabha"
    ],
    "neighbour_names": [
     {
@@ -267631,7 +267631,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390188223-0",
-     "name": "Seated <em>Shijia</em> Buddha (<em>Shakyamuni</em>)",
+     "name": "Seated Shijia Buddha (Shakyamuni)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Chinese",
@@ -267650,7 +267650,7 @@
    "neighbours_geo": [
     {
      "id": "si_ld1-1643390182193-1643390188223-0",
-     "name": "Seated <em>Shijia</em> Buddha (<em>Shakyamuni</em>)",
+     "name": "Seated Shijia Buddha (Shakyamuni)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Chinese",
      "url": "https://asia.si.edu/object/F1911.418/",
@@ -267802,11 +267802,11 @@
     }
    ],
    "en_terms": [
+    "zhongli quan seeking the dao",
     "figural pendant",
     "warrior figurine",
     "figure pendant",
-    "deity earring",
-    "vajravarahi"
+    "deity earring"
    ],
    "neighbour_names": [
     {
@@ -270063,10 +270063,10 @@
    ],
    "en_terms": [
     "seated luohan",
-    "seated em shijia",
     "kneeling boy",
     "seated male figure",
-    "seated ascetics"
+    "seated ascetics",
+    "daoist immortal on a qilin and two attendants"
    ],
    "neighbour_names": [
     {
@@ -270358,10 +270358,10 @@
    ],
    "en_terms": [
     "seated luohan",
-    "seated em shijia",
     "seated guanyin",
     "daoist immortal on a qilin and two attendants",
-    "nursemaid and child"
+    "nursemaid and child",
+    "seated figurine"
    ],
    "neighbour_names": [
     {
@@ -270640,9 +270640,9 @@
     }
    ],
    "en_terms": [
-    "seated em shijia",
     "seated figurine",
     "seated luohan",
+    "seated shijia buddha",
     "seated figure",
     "kneeling boy"
    ],
@@ -273596,7 +273596,7 @@
      "count": 1
     },
     {
-     "name": "Eleven-headed Bodhisattva Avalokiteshvara (JÅ«ichimen Kannon)",
+     "name": "Eleven-headed Bodhisattva Avalokiteshvara (Jūichimen Kannon)",
      "count": 1
     },
     {
@@ -273652,7 +273652,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187862-0",
-     "name": "Eleven-headed Bodhisattva Avalokiteshvara (JÅ«ichimen Kannon)",
+     "name": "Eleven-headed Bodhisattva Avalokiteshvara (Jūichimen Kannon)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "publish_image": true,
      "culture": "Buddhists; Japanese",
@@ -273759,7 +273759,7 @@
     },
     {
      "id": "si_ld1-1643390182193-1643390187862-0",
-     "name": "Eleven-headed Bodhisattva Avalokiteshvara (JÅ«ichimen Kannon)",
+     "name": "Eleven-headed Bodhisattva Avalokiteshvara (Jūichimen Kannon)",
      "holder": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
      "culture": "Buddhists; Japanese",
      "url": "https://asia.si.edu/object/F1911.159a-d/",

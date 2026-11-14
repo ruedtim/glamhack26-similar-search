@@ -21,7 +21,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from harvest import CMA, get_json, save_image, sess
+from harvest import CMA, get_json, plain, save_image, sess
 
 SI = "https://smithsonian-open-access.s3-us-west-2.amazonaws.com/metadata/edan"
 SI_UNITS = {"fsg": "Smithsonian – Freer Gallery of Art and Arthur M. Sackler Gallery",
@@ -66,7 +66,8 @@ def si_unit(unit):
             try:
                 r = sess().get(u, timeout=60)
                 if r.status_code == 200:
-                    return r.text
+                    # UTF-8, but the files declare no charset: r.text would decode them as Latin-1 (mojibake)
+                    return r.content.decode("utf-8", errors="replace")
             except Exception:
                 pass
         return ""
@@ -86,7 +87,7 @@ def si_unit(unit):
                             and (m.get("usage") or {}).get("access") == "CC0"), None)
                 if not img or not img.get("content"):
                     continue
-                title = (dn.get("title") or {}).get("content") or ""
+                title = plain((dn.get("title") or {}).get("content"))
                 culture = "; ".join(ix.get("culture", [])[:2]) or "; ".join(ix.get("place", [])[:2])
                 otype = "; ".join(ix.get("object_type", [])[:2])
                 out.append(dict(source="si", id="si_" + re.sub(r"[^\w.-]+", "_", r.get("id", "")), name=title,

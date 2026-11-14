@@ -16,7 +16,7 @@ import random
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from harvest import PHIL, get_json, phil_collections, phil_holder, save_image, sess
+from harvest import PHIL, get_json, phil_collections, phil_holder, plain, save_image, sess
 
 UZH_COLLECTION = 439
 RIETBERG_CSV = ("https://data.stadt-zuerich.ch/dataset/mrz_himmelheber_objekte/download/"
@@ -32,10 +32,10 @@ def phil_item_record(it, colls, source):
     return {
         "source": source,
         "id": f"{source}_{it['id']}",
-        "name": (et.get("Title") or "").strip(),
-        "title": (et.get("Title") or "").strip(),
+        "name": plain(et.get("Title")),
+        "title": plain(et.get("Title")),
         "inv": (et.get("Identifier") or "").strip(),
-        "culture": (et.get("Origin") or et.get("Spatial Coverage") or "").strip(),
+        "culture": plain(et.get("Origin") or et.get("Spatial Coverage")),
         "holder": phil_holder(it, et, colls),
         "desc": (et.get("Description") or "")[:700],
         "url": f"https://philippinestudies.uk/mapping/items/show/{it['id']}",
