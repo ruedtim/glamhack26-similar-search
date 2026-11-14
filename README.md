@@ -31,7 +31,8 @@ collections?* The idea is that comparable objects in other collections supply be
 - In the proxy test, image similarity puts the correct name among the 5 nearest neighbours in about
   55–68 % of cases. The prerequisite is that the name occurs in the reference set at all. Chance is about 2–3 %.
 - Zero-shot naming against a fixed vocabulary (SigLIP 2, image↔term) is stronger than taking names
-  from neighbours: Top-1 53 %, Top-5 78 %. The museum's own German vocabulary can serve as the term list.
+  from neighbours: Top-1 53 %, Top-5 78 %. Since 14.11.2026 the term list is not the museum's own vocabulary but
+  external controlled vocabularies (Getty AAT with AAT-Deutsch, GND, NMVW thesaurus, Trachsler), with links.
 - On the real slide objects: the «Figur auf Sockel» works well (neighbours: Chinese deity and tomb figures,
   including a «Daoist Immortal»; zero-shot: «Gottheitsstatue»). The «Bambusgitarre/Valiha» fails as a
   ~120 px thumbnail: the models see a bamboo stick. The British Museum tube zither only ranks 37th.
@@ -41,12 +42,14 @@ collections?* The idea is that comparable objects in other collections supply be
 - **Real sample (1,019 VMZ objects with «?», quotation marks or only «Figur»):** once the reference set is
   embedded, the suggestions for all objects take about 1.5 min at half GPU load. They give useful evidence for
   many objects:
-  - 31 % of the 475 «?» hypotheses are clearly supported by the photo (among the top 2 % of 2,434 VMZ terms;
-    by chance 2 %), another 29 % are possible;
-  - more specific terms from the museum's own vocabulary, and neighbours that already carry the right name
-    (10 of the 12 nearest neighbours of a «Goldgewicht» are gold weights);
+  - 35 % of the 475 «?» hypotheses are clearly supported by the photo (their AAT/NMVW concept among the top 2 %
+    of 10,614 concepts; by chance 2 %), another 16 % are possible;
+  - more specific concepts from the controlled vocabularies (for «Korb (Worfel?)» the first suggestion is
+    «Schwinge», AAT winnowing baskets), and neighbours that already carry the right name (10 of the 12 nearest
+    neighbours of a «Goldgewicht» are gold weights);
   - for objects named only «Figur», specific proposals such as «Kraftfigur, nkisi», «Sakyamuni Buddha» or «Puppe».
-- German terms have to be machine-translated to English before SigLIP 2 ranks them well. Ethnographic
+- SigLIP 2 needs English: the controlled vocabularies supply English labels for the comparison and German ones
+  (AAT-Deutsch, GND) for the pages; the museum's own German terms had to be machine-translated. Ethnographic
   collections with German type names help naming more than large art-museum sets. The coverage of the
   reference set is the main limit.
 
@@ -60,11 +63,14 @@ from the two «Objektliste» PDFs, plus 271 objects named only «Figur» (separa
   and DINOv2, weighted rank fusion (DINOv2 × 0.25). 21 «hub» objects, which would be among the top 5 for ≥ 10
   photos, are hidden;
 - a second row «Ähnlich und aus derselben Region» (geographic layer, `geo.py`; 464 objects have one);
-- terms from the VMZ's own vocabulary (2,434 type terms from the catalogue names, machine-translated to
-  English), ranked against the photo;
-- the rank of every term in the current name («?» hypothesis check): rank ≤ 49 (top 2 %) = supported,
-  ≤ 243 (top 10 %) = possible. Calibration on the certain type terms of the current names (n = 370):
-  37 % supported, 34 % possible, median rank 95;
+- «Vorschläge aus kontrollierten Vokabularen»: the 8 concepts that fit the photo best, from 10,614 concepts of the
+  Getty AAT and the NMVW thesaurus, shown with the German label (AAT-Deutsch or GND, else English, marked «engl.») and
+  links to AAT, GND, NMVW and the Trachsler class (`vocab_external.py`; see «Controlled vocabularies» below);
+- «Begriffe im aktuellen Namen – in kontrollierten Vokabularen»: every term of the current name with its concept
+  (or «Material», or «kein Konzept gefunden») and the photo's support: rank ≤ 212 (top 2 %) = supported,
+  ≤ 1061 (top 10 %) = possible. Calibration on the certain type terms of the current names (n = 447): concept found
+  for 86 %, among the 8 suggestions the same concept for 11 %, the same or a narrower one for 26 %; 43 % supported,
+  16 % possible, median rank 225;
 - catalogue objects with the same native name, and objects with the same designation in the MKB
   «Sammlung Europa» (text only; 263 VMZ objects have matches);
 - non-sensitive catalogue fields (see «Publication rules»).
@@ -72,15 +78,17 @@ from the two «Objektliste» PDFs, plus 271 objects named only «Figur» (separa
 **MKB list (switch «VMZ | MKB» in both lists):** `suggest_mkb.py` takes all 7,310 MKB objects with an image
 (African collection, via PARC) as the starting point. Per object it shows the 8 most similar objects in the other
 collections (21,164 objects, including the 1,019 VMZ objects, which link to their entry in the VMZ list), the
-ranks of the terms in the current MKB name, and the best terms from the VMZ vocabulary. Models, vocabulary and
-thresholds are the same as in the VMZ list; the hub threshold scales with the number of photos (top 5 of ≥ 98
-photos; 6 objects hidden).
-- The photo supports the type term of the current MKB name for 54 % of the 7,283 objects with a certain name
-  (possible: 26 %, median rank 39; VMZ list, certain type terms: 37 %). Possible reasons: the MKB photos are
-  larger, and the names are mostly common type terms («Löffel», «Maske», «Armring»).
+concepts of the terms in the current MKB name, and the 6 best concepts from the controlled vocabularies. Models,
+vocabularies and thresholds are the same as in the VMZ list; the hub threshold scales with the number of photos
+(top 5 of ≥ 98 photos; 6 objects hidden).
+- For the 7,283 objects with a certain name, the type term has a concept for 90 %; among the 6 suggestions is the
+  same concept for 17 %, the same or a narrower one for 34 %; the photo supports it for 69 % (possible: 12 %, median
+  rank 36 of 10,614; VMZ list, certain type terms: 43 %). Possible reasons: the MKB photos are larger, and the
+  names are mostly common type terms («Löffel», «Maske», «Armring»).
 - 1,754 MKB objects have a VMZ object among their 8 nearest neighbours (filter «mit ähnlichem VMZ-Objekt»).
-- The page holds all objects as JSON (4.7 MB) and shows 50 at a time. Search, filters (only «?», only «Figur»,
-  with a VMZ neighbour; name supported / possible / not supported) and paging run in the browser, also offline.
+- The page holds all objects as JSON (5.3 MB, the concepts in a table of their own) and shows 50 at a time.
+  Search, filters (only «?», only «Figur», with a VMZ neighbour; name supported / possible / not supported) and
+  paging run in the browser, also offline.
 
 **Reference set: 27,610 objects from other collections**
 
@@ -491,6 +499,77 @@ PRM 1,475, Rietberg 893).
   objects they change slightly (e.g. «seated shijia buddha» instead of the fragment «seated em shijia»).
   The other figures on the pages stay the same.
 
+### Controlled vocabularies instead of the VMZ's own terms (14.11.2026)
+
+The lists no longer rank the type terms of the VMZ catalogue. They suggest concepts from external controlled
+vocabularies, each with its label, source and link (`vocab_external.py`; evaluation and prototype:
+`compare_vocab.py`). Orientation: the NMVW thesaurus, the MEK collection concept, the Getty AAT, the GND and Trachsler.
+
+Which vocabularies are machine-readable and open:
+
+| Vocabulary | Access | Licence | Languages, size | Role |
+|---|---|---|---|---|
+| Getty AAT | SPARQL (vocab.getty.edu) | ODC-By 1.0 | 26,424 concepts in four object hierarchies (Furnishings and Equipment, Visual and Verbal Communication, Object Genres, Components); English, German (AAT-Deutsch) for 7,487, Dutch; plus the Materials facet | backbone: SigLIP 2 compares the photo with the English labels, no machine translation |
+| NMVW thesaurus (Nationaal Museum van Wereldculturen, now Wereldmuseum) | Colonial Collections hub: TriG download, SPARQL | CC0 | 6,065 object terms («Objecttrefwoord»), Dutch, English for 5,609; 4,300 with `skos:exactMatch` to the AAT | selects the AAT concepts in use in an ethnographic museum; 1,459 own terms without AAT match (twin sculptures, temple banners …) |
+| GND subject headings | full dump of the DNB (lobid-gnd did not answer on 14.11.2026); AAT ↔ GND pairs from Wikidata (P1014, P227) | CC0 | 136,658 headings, German; 2,334 AAT object concepts linked via Wikidata, 1,315 more by an identical German label | German label and authority link; finds the terms of the current names |
+| Trachsler, «Systematik kulturhistorischer Sachgüter» | export of the Verband der Museen der Schweiz via KIM.ch, xTree browser | **no licence stated** | 4,873 classes, German, French, Italian; function classes of Swiss cultural history | function class; the pages show only notation, class name and link, the list stays in `data/` |
+| MEK collection concept (Museum Europäischer Kulturen, PDF 2022) | PDF | – | names 74 subject groups by context of use, but does not publish them | orientation only: it orders by theme/use (like Trachsler), material, «cultural landscape» and collection |
+
+How the suggestions are made:
+- **Candidates («ethno», 10,614):** the AAT concepts that the NMVW thesaurus uses, AAT-Deutsch translates or the GND
+  links, plus the NMVW terms without AAT match. SigLIP 2 so400m compares each photo with «a photo of a {singular AAT
+  label}, an ethnographic museum object», with the same hubness correction as before (minus half of each text's mean
+  similarity over all photos). The pages show the German label (AAT-Deutsch, else GND) or, where there is none, the
+  English one marked «engl.» – the VMZ data are German and stay German, but an English term helps to find the German
+  one by hand. Candidates are chosen by the evaluation, not by language.
+- **Terms of the current name:** each term is looked up in AAT-Deutsch, the GND (via Wikidata) and, through the
+  existing machine translation, in the English labels of AAT and NMVW. For ambiguous words the preferred labels of
+  AAT-Deutsch come first, then the senses the NMVW thesaurus uses and whole objects before parts; the photo picks among
+  the rest («Trommel» → membranophone, not column drum; «Schale» → bowl, not kylix). A concept found only through the
+  translation is shown only when the photo supports it (homonyms: «Hund» → a woodworking clamp). Materials in the name
+  («Figur; Ton», «Spitze, Stein») are recognised via the AAT Materials facet and shown as «Material». Compound words
+  without a concept fall back to their end («Holzmaske» → Maske, marked «Oberbegriff»).
+- **Trachsler:** the classes whose title names the German term; if several do (eight classes of baskets), the photo
+  picks one. From the photo alone, a class naming the type term is among the first five in only a third of the cases,
+  so Trachsler is never suggested from the image alone. Its European/Swiss focus shows: masks exist only as
+  «6.130.2 Fasnachtsmasken».
+
+Evaluation (`compare_vocab.py`): the certain type term of the current name (first term without «?»); its concept =
+all AAT/NMVW concepts with that German label (AAT, GND) or the English translation, else the end of the compound.
+Share of all objects – a missing concept counts as a miss:
+
+| | candidates | concept present | same concept among the first 1 / 5 / 8 | same or narrower among 1 / 5 / 8 | median rank |
+|---|---|---|---|---|---|
+| **VMZ sample, «?» and quotes (n = 447)** | | | | | |
+| VMZ vocabulary (before) | 2,434 | 83 % | 3 / 10 / 13 % | – | 95 |
+| AAT, all object concepts | 26,424 | 90 % | 1 / 5 / 7 % | 9 / 18 / 24 % | 597 |
+| AAT used by the NMVW thesaurus | 3,206 | 61 % | 4 / 15 / 19 % | 10 / 20 / 25 % | 34 |
+| «ethno» (on the pages) | 10,614 | 86 % | 2 / 7 / 11 % | 9 / 22 / 26 % | 244 |
+| only concepts with a German label | 8,236 | 83 % | 3 / 11 / 15 % | 10 / 25 / 28 % | 189 |
+| **MKB objects with a certain name (n = 7,283)** | | | | | |
+| VMZ vocabulary (before) | 2,434 | 89 % | 2 / 11 / 17 % | – | 37 |
+| AAT, all object concepts | 26,424 | 93 % | 3 / 11 / 15 % | 13 / 28 / 34 % | 79 |
+| AAT used by the NMVW thesaurus | 3,206 | 82 % | 8 / 24 / 33 % | 15 / 31 / 39 % | 14 |
+| «ethno» (on the pages) | 10,614 | 91 % | 4 / 15 / 21 % | 16 / 32 / 37 % | 34 |
+| only concepts with a German label | 8,236 | 85 % | 8 / 20 / 25 % | 14 / 31 / 37 % | 26 |
+
+- **More hits, more specific ones.** With the controlled vocabularies the 8 suggestions hit the concept of the
+  name or a narrower one in 26 % (VMZ) and 37 % (MKB), against 13 % and 17 % for the exact term before. The narrower
+  ones are what the challenge looks for: «Schwinge» (AAT winnowing baskets) for «Korb (Worfel?)».
+- **The same concept alone** is about as frequent as before (11 % vs 13 %, 21 % vs 17 %): 10,614 concepts compete,
+  among them many close neighbours.
+- **«?» hypotheses:** 35 % of the 475 are supported (top 2 % of 10,614), 52 % at least possible; their concept is
+  missing for 30 % (before, VMZ vocabulary: 31 % and 60 %).
+- **Choices tested:** all 26,424 AAT concepts give fewer exact hits; only the 3,206 used by the NMVW thesaurus give
+  more exact hits but miss the concept for 39 % of the VMZ names; only German-labelled concepts score a little higher
+  on exact hits, because the German names are matched on German labels, but lose common types that AAT-Deutsch has not
+  translated (bowls, vessels, statues). The prompt with the AAT qualifier («basket (container)») is clearly better
+  than without (7 % vs 11 % same concept among 8 for the VMZ sample); the hubness factor 0.25–0.5 makes no difference.
+- **Coverage of the names:** the type term has an AAT concept for 74 % of the VMZ sample objects with a certain
+  name (91 % with the end of compounds), the GND has the term itself for 62 %, the NMVW thesaurus for 62 %, Trachsler a
+  class for 62 %; MKB names: 86 % / 93 %, 72 %, 83 %, 66 %.
+- Prototype for 57 objects with the old display for comparison: `dist/vocab-prototype/index.html` (not published).
+
 ## Run
 
 ```bash
@@ -520,8 +599,9 @@ venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_
   --pdf VMZ_objects-with-questionmark.pdf --pdf VMZ_objects-with-quotation-marks.pdf --out data   # ~30 s
 venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_.xlsx --out data --images data/VMZ_figure --flag Figur
 
-# 4. embeddings (incremental), pages, offline ZIP
+# 4. embeddings (incremental), controlled vocabularies, pages, offline ZIP
 GPU_SHARE=0.5 venv/bin/python embed.py --data data --queries queries --models siglip2,dinov2,siglip2_so400m
+venv/bin/python vocab_external.py --out data/vocab   # AAT, NMVW, GND, Wikidata, Trachsler -> data/vocab (~60 MB, cached)
 GPU_SHARE=0.5 venv/bin/python suggest_vmz.py --data data --public --out docs/review --text-model siglip2_so400m   # ~1.5 min
 GPU_SHARE=0.5 venv/bin/python suggest_mkb.py --data data --out docs/review --text-model siglip2_so400m   # MKB list
 venv/bin/python make_overview.py --data data --results docs/review/vmz_results.json --out docs
@@ -530,7 +610,12 @@ venv/bin/python make_offline_zip.py             # -> dist/glamhack26-similar-sea
 # 5. comparisons
 venv/bin/python compare_refs.py --data data --before data/records_before_more.jsonl   # old vs. new reference set
 GPU_SHARE=0.5 venv/bin/python compare_models.py --data data --models siglip2,siglip2_so400m,dinov2
+GPU_SHARE=0.5 venv/bin/python compare_vocab.py --data data --vocab data/vocab --json data/vocab/metrics.json \
+  --html dist/vocab-prototype/index.html   # VMZ vocabulary vs controlled vocabularies, prototype page
 ```
+
+The lists read the vocabularies from `DATA_DIR/vocab` (`--vocab` for another folder). The first run embeds the
+~28,000 concept texts once (a few minutes at half GPU load); they are cached in `data/vocab/text_<model>.npy`.
 
 `GPU_SHARE=0.5` throttles the GPU to ~50 % load with a duty cycle (a pause after each batch, half the
 CPU threads). It's quieter and takes about twice as long. `embed.py` only computes vectors for new objects.
@@ -546,8 +631,13 @@ CPU threads). It's quieter and takes about twice as long. `embed.py` only comput
   the base models).
 - `evaluate.py` – proxy metrics, zero-shot with German terms, and `results.html` with neighbours.
 - `ingest_vmz.py` – imports the VMZ catalogue (Excel), the photos from the «Objektliste» PDFs and the «Figur» photos.
-- `suggest_vmz.py` – suggestions for the VMZ objects: neighbours, VMZ vocabulary (via MT), hypothesis
-  ranks, native names, geographic layer, MKB text layer; writes the list page, Excel and JSON.
+- `suggest_vmz.py` – suggestions for the VMZ objects: neighbours, concepts from controlled vocabularies, the
+  concepts of the terms in the current name, native names, geographic layer, MKB text layer; writes the list page,
+  Excel and JSON.
+- `vocab_external.py` – the external controlled vocabularies as local term lists with URIs (AAT, NMVW thesaurus, GND,
+  Wikidata pairs, Trachsler, AAT materials), matching of German terms, the zero-shot suggestions (`Suggester`) and
+  the chips with links.
+- `compare_vocab.py` – evaluation of the controlled vocabularies against the VMZ vocabulary, and the prototype page.
 - `harvest_more.py` – more reference objects (Cleveland departments, Smithsonian Freer|Sackler, NMAfA, NMAI; CC0).
 - `harvest_md.py` – reference objects with German type names from museum-digital (open JSON API).
 - `enrich_md_places.py` – places/peoples of the museum-digital objects for the geographic layer (cache only).
@@ -557,7 +647,7 @@ CPU threads). It's quieter and takes about twice as long. `embed.py` only comput
 - `merge_staged.py` – merges staged harvests; `compare_models.py` – compares the image models.
 - `compare_refs.py` – compares two reference sets on the VMZ objects (coverage and name confirmation).
 - `suggest_mkb.py` – the MKB list (`docs/review/mkb.html`): all MKB objects as starting point, neighbours in
-  the other collections including the VMZ objects, terms from the VMZ vocabulary.
+  the other collections including the VMZ objects, concepts from the controlled vocabularies.
 - `make_overview.py` – the overview page for the challenge owners (`docs/index.html`).
 - `feedback.py` – the feedback button and the object links of all pages; `docs/feedback.js` shows the form on the
   page and sends it to the relay (`feedback-relay/Code.gs`, Google Apps Script shared with the box viewer);
@@ -574,7 +664,8 @@ the challenge slides. `data/` and `venv/` are not in the repository; rebuild the
    collections with images, an image licence (and an export) from the PRM, an export from the Rietberg, and
    more from museum-digital (the Ethnologisches Museum Berlin alone has ~77,000 objects there).
 2. **Per object with a generic name:** show the top-k similar objects (with link and holding museum),
-   plus SigLIP 2 zero-shot term suggestions from the UZH's own German vocabulary. The curator decides.
+   plus SigLIP 2 zero-shot suggestions from controlled vocabularies (AAT, GND, NMVW thesaurus, Trachsler) with
+   links, so that a chosen term is an authority term. The curator decides.
 3. **Add text signals:** search the accession register / emic names («Valiha») in other databases. The
    geographic layer already shows similar objects from the same region as a second row; it adds context
    rather than better names.

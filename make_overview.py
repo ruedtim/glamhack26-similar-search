@@ -17,6 +17,7 @@ from pathlib import Path
 from PIL import Image
 
 from feedback import FEEDBACK_CSS, feedback_html
+from vocab_external import VOCAB_CREDIT
 
 REPO = "https://github.com/ruedtim/glamhack26-similar-search"
 SITE = "https://ruedtim.github.io/glamhack26-similar-search/"
@@ -26,15 +27,15 @@ GROUPS = [
      "Die visuell ähnlichsten Objekte aus anderen Sammlungen tragen oft schon den passenden Namen.",
      ["00145ad", "24472", "00276"]),
     ("Die «?»-Hypothese wird vom Foto gestützt",
-     "Der unsichere Begriff gehört zu den 2 % der VMZ-Begriffe, die am besten zum Foto passen – "
-     "oft tragen auch die ähnlichsten Objekte diesen Namen.",
+     "Das Konzept des unsicheren Begriffs (Getty AAT, GND) gehört zu den 2 % der Konzepte aus kontrollierten "
+     "Vokabularen, die am besten zum Foto passen – oft tragen auch die ähnlichsten Objekte diesen Namen.",
      ["38285", "20428", "11948.026"]),
     ("«Figur»: generischer Name, konkreter Vorschlag",
      "271 Objekte heissen im Katalog nur «Figur». Ähnliche Objekte anderer Museen tragen oft eine präzise "
      "Typbezeichnung – ein Vorschlag zur Prüfung, kein Ersatz für die Fachperson.",
      ["10108", "12245", "o.Nr.3520"]),
     ("Gegenvorschlag, wo die Hypothese nicht passt",
-     "Der Begriff im Namen passt kaum zum Foto, dafür andere Begriffe aus dem eigenen Katalog.",
+     "Der Begriff im Namen passt kaum zum Foto, dafür andere Begriffe aus den kontrollierten Vokabularen.",
      ["o.Nr.5388", "08413.002"]),
 ]
 
@@ -67,7 +68,10 @@ def notes(o, res):
             lead = f"Unter den 12 ähnlichsten Objekten {worf}, die übrigen heissen {quoted(rest)}."
         else:
             lead = f"Die 12 ähnlichsten Objekte heissen {quoted(rest)} – keine Worfel."
-        return (f"{lead} Das Bild-Text-Modell kennt das seltene Wort «Worfel» nicht (Rang {rank(o, 'Worfel')})"
+        schw = vocab_labels(o, 8, r"schwinge|winnowing")
+        return (f"{lead} «Worfel» fehlt in AAT, GND und NMVW"
+                + (f", aber unter den Vorschlägen aus den kontrollierten Vokabularen steht {quoted(schw[:1])} "
+                   f"(AAT: winnowing baskets) – genau das" if schw else "")
                 + (f"; die MKB-Sammlung Europa kennt das Wort in {len(mkb)}+ Titeln ({quoted(m['title'] for m in mkb[:2])})."
                    if mkb else "."))
     if inv == "00145ad":
@@ -80,7 +84,9 @@ def notes(o, res):
         term, pat = supported[inv]
         hit = [n["name"] for n in nb if re.search(pat, n["name"], re.I)]
         k = len(hit)
-        return (f"«{term}» steht auf Rang {rank(o, term)} von {v} ({label_of(rank(o, term), res)}); {k} der 5 "
+        t = next(x for x in o["terms"] if x["term"] == term)
+        return (f"«{term}» (Konzept «{concept(t)}») steht auf Rang {rank(o, term)} von {v} "
+                f"({label_of(rank(o, term), res)}); {k} der 5 "
                 f"ähnlichsten Objekte {'heisst' if k == 1 else 'heissen'} {quoted(list(dict.fromkeys(hit))[:3])} – "
                 f"Bild-Text-Abgleich und Vergleichsobjekte stimmen überein.")
     if inv == "11948.015":
@@ -104,7 +110,7 @@ def notes(o, res):
     if inv == "24472":   # group A: the neighbours name the textile type
         suz = next((n for n in nb if "suzani" in n["name"].lower()), None)
         nat = " und ".join("«" + m["term"] + "»" for m in o["native_matches"][:2])
-        return (f"«Bettüberwurf» steht auf Rang {rank(o, 'Bettüberwurf')} von {v}."
+        return (f"«Bettüberwurf» (Konzept «{concept(o['terms'][0])}») steht auf Rang {rank(o, 'Bettüberwurf')} von {v}."
                 + (f" Das ähnlichste Objekt ist ein «{suz['name']}» ({suz['holder']})." if suz else "")
                 + f" Der einheimische Name «susani» kommt im VMZ-Katalog bei weiteren Objekten vor – dort als {nat}.")
     fig = {"10108": (r"kraft|nkisi|nkondi|power", "Kraftfigur (nkisi)"),
@@ -116,32 +122,53 @@ def notes(o, res):
         hits = [x for x in nn if re.search(pat, x["name"], re.I)]
         k = sum(x["count"] for x in hits)
         where = ", ".join(v for v in (o.get("culture"), o.get("country")) if v and v != "(ohne Zuordnung)")
-        terms = ", ".join(t["term"] for t in o["vmz_terms"][:3])
+        terms = ", ".join(vocab_labels(o, 3))
         named = quoted(x['name'].split(' | ')[0] for x in hits[:2])
         lead = (f"{k} der 12 ähnlichsten Objekte {'heisst' if k == 1 else 'heissen'} {named}" if k else
                 "Unter den 12 ähnlichsten Objekten ist keines mit präziser Bezeichnung")
-        return (f"Im Katalog nur «Figur»{f' ({where})' if where else ''}. {lead}; passende VMZ-Begriffe: {terms}. "
+        return (f"Im Katalog nur «Figur»{f' ({where})' if where else ''}. {lead}; Vorschläge aus den kontrollierten "
+                f"Vokabularen: {terms}. "
                 f"Vorschlag zur Prüfung: «{label}».")
     if inv == "o.Nr.5388":
         arm = [t for t in o["en_terms"] if re.search(r"bracelet|bangle|wristlet|armlet|anklet", t)]
         ring = sum(x["count"] for x in nn if re.search(r"armring|armreif|bracelet|bangle", x["name"].lower()))
-        return (f"«Ornament» nur Rang {rank(o, 'Ornament')} von {v}. Der Bild-Text-Abgleich nennt Armmanchette, "
-                f"Armstulpe und Papuaarmband (VMZ-Begriffe)" + (f" sowie {quoted(arm)}" if arm else "")
+        armv = vocab_labels(o, 8, r"arm|bracelet|bangle|armlet")
+        return (f"«Ornament» nur Rang {rank(o, 'Ornament')} von {v}. Die Vorschläge aus den kontrollierten Vokabularen "
+                f"nennen {quoted(vocab_labels(o, 2))}" + (f", aber auch {quoted(armv[:2])}" if armv else "")
+                + (f"; englische Namen anderer Sammlungen: {quoted(arm)}" if arm else "")
                 + (f"; unter den 12 ähnlichsten Objekten sind {ring}× «Armring» (Ethnologisches Museum Berlin), "
                    f"daneben Bambusbehälter und Mörser" if ring else
                    "; die ähnlichsten Objekte sind dagegen Bambusbehälter") + ". Armschmuck prüfen.")
     if inv == "08413.002":
         fin = sum("finial" in n["name"].lower() for n in o["neighbours"][:8])
-        return (f"«Gefäss» nur Rang {rank(o, 'Gefäss')} von {v}. Der Bild-Text-Abgleich nennt Vogelkopf und Tierkopf"
+        rk = rank(o, "Gefäss")
+        return ((f"«Gefäss» nur Rang {rk} von {v}." if rk else "«Gefäss»: kein passendes Konzept.")
+                + f" Die Vorschläge aus den kontrollierten Vokabularen nennen {quoted(vocab_labels(o, 3))}"
                 + (f"; unter den 8 ähnlichsten Objekten sind {fin} Stabaufsätze («Finial», Freer Gallery of Art)."
                    if fin else "; die ähnlichsten Objekte sind figürliche Anhänger und Köpfe."))
     if inv == "o.Nr.2607":
         bell = [t for t in o["en_terms"] if "bell" in t]
         rk = rank(o, 'Rassel')
-        return (f"«Rassel» Rang {rk} von {v} ({label_of(rk, res)}). Unter den fünf passendsten VMZ-Begriffen sind "
-                f"Messingglocke, Kuhglocke, Schelle und Glocke" + (f", englisch {quoted(bell[:2])}" if bell else "")
-                + ": eher eine Glocke?")
+        bells = vocab_labels(o, 8, r"glocke|schelle|bell")
+        return (f"«Rassel» Rang {rk} von {v} ({label_of(rk, res)}). Die Vorschläge aus den kontrollierten Vokabularen "
+                f"nennen {quoted(vocab_labels(o, 3))}" + (f" und {quoted(bells[:2])}" if bells else "")
+                + (f", englische Namen anderer Sammlungen {quoted(bell[:2])}" if bell else "")
+                + (": eher eine Glocke?" if bells or bell else "."))
     raise KeyError(inv)
+
+
+def concept(t):
+    """German label of the concept of a name term (else English), or the material."""
+    if t.get("material"):
+        return t["material"][1]
+    c = t.get("concept") or {}
+    return c.get("de") or (c.get("en", "") + " (engl.)" if c.get("en") else "")
+
+
+def vocab_labels(o, k=4, pat=None):
+    """Labels of the first k concept suggestions (German, else English), optionally only those matching pat."""
+    out = [c["de"] or c["en"] for c in o.get("vocab_terms", [])]
+    return [x for x in out if not pat or re.search(pat, x, re.I)][:k]
 
 
 def label_of(r, res):
@@ -201,11 +228,10 @@ def main():
     generic = re.compile(r"^(figure|figur|figurine|male figure|female figure|männliche figur|weibliche figur|statuette|"
                          r"statue|schnitzerei|seated figure|standing figure|sculpture|carving|figurine head)$", re.I)
     spec = [f"«{nm}» ({c})" for nm, c in fig.get("neighbour_names", []) if nm and not generic.match(nm.strip())][:6]
-    vt = [f"«{t}» ({c})" for t, c in fig.get("vmz_terms", [])
-          if not re.match(r"^(holz|bronze|messing|metall|stein|marmor|ton|porzellan)", t, re.I)][:6]
+    vt = [f"«{t}» ({c})" for t, c in fig.get("vocab_terms", [])][:6]
     fig_bullet = (f"<li><b>«Figur» lässt sich oft präzisieren.</b> Bei den {fig['n']} «Figur»-Objekten heissen die "
-                  f"ähnlichsten Objekte am häufigsten {', '.join(spec)}; das Bild-Text-Modell schlägt aus dem "
-                  f"VMZ-Vokabular vor allem {', '.join(vt)} vor (Materialbegriffe ausgenommen).</li>"
+                  f"ähnlichsten Objekte am häufigsten {', '.join(spec)}; das Bild-Text-Modell schlägt aus den "
+                  f"kontrollierten Vokabularen vor allem {', '.join(vt)} vor.</li>"
                   if fig.get("n") else "")
 
     def card(o):
@@ -213,7 +239,8 @@ def main():
         q = img(data / o["img"], out / "img" / f"q_{safe}.jpg", 420)
         chips = "".join(
             f'<span class="chip {status(t["rank"], res)}">{esc(t["term"])}{" " + t["mark"] if t["mark"] else ""}'
-            f' <b>#{t["rank"]}</b> <i>{label[status(t["rank"], res)]}</i></span>'
+            f' → <b>{esc(concept(t))}</b> <i>{label[status(t["rank"], res)]}</i></span>' if t["rank"] else
+            f'<span class="chip">{esc(t["term"])}{" " + t["mark"] if t["mark"] else ""} <i>kein Konzept gefunden</i></span>'
             for t in o["terms"] if t["mark"] == "?")
         nbs = []
         for nb in o["neighbours"][:5]:
@@ -294,8 +321,9 @@ a{{color:var(--acc)}}
 <p class="kicker">GLAMhack 2026 · Challenge «To Be Renamed!» · Völkerkundemuseum der Universität Zürich</p>
 <h1>Bildähnlichkeit als Hilfe beim Umbenennen</h1>
 <p class="lead">Für {res['n']} Objekte mit unsicheren oder generischen Namen ({grp_text}) haben wir die Fotos mit
-{n_ref} Objekten aus anderen Sammlungen und mit {res['vocab']} Begriffen aus dem eigenen Katalog verglichen.
-<span class="scr">Erste Resultate, Stand 13. November 2026.</span><span class="prt">Stand 13.11.2026 · <a href="{SITE}">{SITE.removeprefix('https://').rstrip('/')}</a></span></p>
+{n_ref} Objekten aus anderen Sammlungen und mit {res['vocab']} Begriffen aus kontrollierten Vokabularen (Getty AAT, GND,
+Thesaurus des Wereldmuseums, Trachsler) verglichen.
+<span class="scr">Erste Resultate, Stand 14. November 2026.</span><span class="prt">Stand 14.11.2026 · <a href="{SITE}">{SITE.removeprefix('https://').rstrip('/')}</a></span></p>
 <div class="figs">
 <div class="fig"><b>{res['n']}</b><span>Objekte mit Foto aus den Challenge-Daten</span></div>
 <div class="fig"><b>{n_ref}</b><span>Vergleichsobjekte aus anderen Sammlungen</span></div>
@@ -307,8 +335,8 @@ a{{color:var(--acc)}}
 <h2>So funktioniert es</h2>
 <ol class="steps">
 <li><b>Ähnliche Objekte finden.</b> Zwei Bildmodelle (SigLIP 2, DINOv2) suchen zu jedem Foto die ähnlichsten Objekte in anderen Sammlungen – mit deren Namen, Museum und Link.</li>
-<li><b>Eigene Begriffe vorschlagen.</b> Ein Bild-Text-Modell ordnet alle {res['vocab']} Typbegriffe aus den Objektnamen des VMZ-Katalogs nach ihrer Passung zum Foto. Dafür werden die Begriffe maschinell ins Englische übersetzt, weil das Modell Englisch viel besser versteht. Ebenso mit den englischen Objektnamen der Vergleichssammlungen.</li>
-<li><b>«?»-Hypothesen prüfen.</b> Jeder Begriff im aktuellen Namen bekommt seinen Rang unter allen Begriffen: Top 2 % (Rang ≤ {res['sup']}) = vom Foto gestützt, Top 10 % (≤ {res['pos']}) = möglich.</li>
+<li><b>Begriffe aus kontrollierten Vokabularen vorschlagen.</b> Ein Bild-Text-Modell ordnet {res['vocab']} Konzepte aus dem Getty AAT und dem Thesaurus des Wereldmuseums (NMVW) nach ihrer Passung zum Foto. Es vergleicht mit den englischen Bezeichnungen, die es viel besser versteht; angezeigt wird die deutsche Bezeichnung aus AAT-Deutsch oder der GND (sonst die englische), mit Links zu den Normdaten und der Funktionsgruppe nach Trachsler. Ebenso mit den englischen Objektnamen der Vergleichssammlungen.</li>
+<li><b>«?»-Hypothesen prüfen.</b> Jeder Begriff im aktuellen Namen wird seinem Konzept zugeordnet und bekommt dessen Rang für das Foto: Top 2 % (Rang ≤ {res['sup']}) = vom Foto gestützt, Top 10 % (≤ {res['pos']}) = möglich.</li>
 <li><b>Geografische Nähe als zweite Schicht.</b> Unter den visuell ähnlichsten Objekten werden zusätzlich die aus derselben Weltregion bzw. demselben Land gezeigt. Die Herkunft stammt aus dem VMZ-Katalog und aus den Angaben der anderen Museen (Länder, Regionen, Ethnien – zugeordnet über den VMZ-Katalog selbst).</li>
 </ol>
 
@@ -319,7 +347,7 @@ a{{color:var(--acc)}}
 <ul class="learn">
 <li><b>Ähnliche Objekte sind der stärkste Hinweis</b> – sofern der Vergleichsbestand den Objekttyp enthält. Sie zeigen auch, wie andere Museen ein Objekt benennen.</li>
 <li><b>«Gestützt» ist ein starkes Indiz</b> (zufällig nur 2 %), <b>«nicht gestützt» nur ein schwaches</b>: Auch sichere Begriffe aus den aktuellen Namen sind nur bei {st.get('type_sup', 0) / tn:.0%} gestützt, besonders seltene Fachwörter fallen durch.</li>
-<li><b>Deutsche Fachbegriffe müssen übersetzt werden.</b> Mit Übersetzung landet der richtige Typbegriff im Mittel auf Rang {st.get('type_ranks') or '–'} statt 809 (von {res['vocab']}). Seltene Wörter wie «Worfel» kennt aber auch die Übersetzung nicht.</li>
+<li><b>Kontrollierte Vokabulare statt eigener Begriffsliste.</b> Die AAT-Konzepte haben englische Bezeichnungen, die das Bild-Text-Modell direkt versteht, und dank AAT-Deutsch und GND oft deutsche; die Links machen jeden Vorschlag überprüfbar. Unter den 8 Vorschlägen ist das Konzept des sicheren Typbegriffs bei {st.get('type_same8', 0) / tn:.0%} dabei, das gleiche oder ein engeres (Schwinge für Korb) bei {st.get('type_hit8', 0) / tn:.0%} – mit dem VMZ-eigenen Vokabular waren es 13 %. Seltene Wörter wie «Worfel» fehlen auch in AAT, GND und NMVW.</li>
 <li><b>Geografische Nähe ist {geo_word}.</b> Bei {st.get('geo_with_layer', 0)} Objekten gibt es mindestens fünf visuell ähnliche Objekte aus derselben Weltregion. Deren Namen bestätigen den Typbegriff in {pct(st.get('geo_type_l2', 0), st.get('geo_type_n', 0))} der Fälle (rein visuell: {pct(st.get('geo_type_l1', 0), st.get('geo_type_n', 0))}), die «?»-Hypothese in {pct(st.get('geo_hyp_l2', 0), st.get('geo_hyp_n', 0))} (rein visuell: {pct(st.get('geo_hyp_l1', 0), st.get('geo_hyp_n', 0))}). Die regionale Liste zeigt dafür Vergleichsstücke aus demselben kulturellen Umfeld.</li>
 {fig_bullet}
 <li><b>Anführungszeichen markieren meist Bildtitel</b> («Bild: „Abendmahl“»). Dort trägt die Methode nur Technikbegriffe bei (Malerei auf Reispapier, Blockdruck).</li>
@@ -335,7 +363,7 @@ a{{color:var(--acc)}}
 </ul>
 
 <footer><p>Vorschläge sind Hinweise, keine Entscheidungen – entscheiden muss die Fachperson. Vergleichsbestände enthalten auch veraltete oder koloniale Bezeichnungen.</p>
-<p>Fotos der VMZ-Objekte: © Völkerkundemuseum der Universität Zürich. Vergleichsbilder als Miniaturen mit Link zur Quelle: Cleveland Museum of Art und Smithsonian (CC0), Museum Rietberg (CC BY-SA), via museum-digital: Ethnologisches Museum, Staatliche Museen zu Berlin (CC BY-NC-SA) und Übersee-Museum Bremen (CC BY-SA), Mapping Philippine Material Culture (© die besitzenden Museen). Museum der Kulturen Basel (auch via PARC, Universität Basel): Bilder mit Einverständnis des MKB, Quellennachweis «Museum der Kulturen Basel». Pitt Rivers Museum: nur Name und Link, Bilder aus Rechtegründen nicht gezeigt. Code: <a href="{REPO}">{REPO.replace('https://', '')}</a>.</p></footer>
+<p>Fotos der VMZ-Objekte: © Völkerkundemuseum der Universität Zürich. Vergleichsbilder als Miniaturen mit Link zur Quelle: Cleveland Museum of Art und Smithsonian (CC0), Museum Rietberg (CC BY-SA), via museum-digital: Ethnologisches Museum, Staatliche Museen zu Berlin (CC BY-NC-SA) und Übersee-Museum Bremen (CC BY-SA), Mapping Philippine Material Culture (© die besitzenden Museen). Museum der Kulturen Basel (auch via PARC, Universität Basel): Bilder mit Einverständnis des MKB, Quellennachweis «Museum der Kulturen Basel». Pitt Rivers Museum: nur Name und Link, Bilder aus Rechtegründen nicht gezeigt. {esc(VOCAB_CREDIT)} Code: <a href="{REPO}">{REPO.replace('https://', '')}</a>.</p></footer>
 </main></body></html>"""
     (out / "index.html").write_text(page, encoding="utf-8")
     print("wrote", out / "index.html", "with", sum(len(s) for _, _, s in GROUPS), "examples")

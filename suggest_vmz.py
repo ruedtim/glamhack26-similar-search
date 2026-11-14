@@ -3,12 +3,12 @@ contain «?» or quotation marks, and objects named only «Figur» (imported wit
 
 Per object:
   - visually similar objects in OTHER collections (SigLIP 2 + DINOv2, reciprocal rank fusion) + their names
-  - terms from the museum's own vocabulary (type terms of all object names in the VMZ catalogue),
-    ranked by SigLIP 2 image<->text similarity (zero-shot). The German terms are machine-translated to
-    English first (opus-mt-de-en, CPU): SigLIP 2 ranks the English text far better (median rank of the
-    certain type term 139 instead of 809 of 2,434). Plus English terms = names in the reference set.
-  - every term in the current name gets its rank in that vocabulary, e.g. "Korb (Worfel?)" ->
-    Korb #3, Worfel #400: does the photo support the hypothesis?
+  - concepts from external controlled vocabularies (vocab_external.py: Getty AAT, GND, NMVW thesaurus,
+    Trachsler), ranked by SigLIP 2 image<->text similarity (zero-shot) against their English AAT/NMVW labels,
+    shown with the German label (AAT-Deutsch or GND, else English) and links. Plus English terms = names in the
+    reference set.
+  - every term in the current name -> its concept in these vocabularies (the photo picks among the senses) and
+    whether the photo supports it, e.g. "Korb (Worfel?)" -> Korb (AAT, GND, NMVW, Trachsler), supported
   - text signal: other catalogue objects with the same native name, and what they are called
 Writes OUT/index.html (+ thumbnails in OUT/img) and OUT/vmz_suggestions.xlsx.
 Without --public the page is internal (accession register, collector, provenance; do not publish).
@@ -16,6 +16,7 @@ Without --public the page is internal (accession register, collector, provenance
 
 Usage: GPU_SHARE=0.5 python suggest_vmz.py --data DATA_DIR --out vmz_review --home ""          # internal
        GPU_SHARE=0.5 python suggest_vmz.py --data DATA_DIR --public --out docs/review --text-model siglip2_so400m
+       (--vocab DATA_DIR/vocab: vocab_external.py --out DATA_DIR/vocab first)
 """
 import argparse
 import html
@@ -34,11 +35,11 @@ from feedback import FEEDBACK_CSS, feedback_html, object_link
 from models import Embedder, load_embeddings
 from geo import Geo, proximity
 from suggest import clean_de, rrf
+from vocab_external import VOCAB_CREDIT, VOCAB_CSS, Suggester, TextCache, Vocab, card_html, card_text, name_term_html
 
 QUOTES = "\"„“”«»‚‘’`´"
 SEP = r"[();:,/\[\]]| oder | mit | für | aus | von | und | - "
 EN_TEMPLATE = "a photo of a {}, an ethnographic museum object"
-SUP_SHARE, POS_SHARE = 0.02, 0.10     # rank thresholds: top 2 % = supported, top 10 % = possible
 RIGHTS_PUBLIC = ("Fotos der VMZ-Objekte: © Völkerkundemuseum der Universität Zürich. Vergleichsbilder: Cleveland "
                  "Museum of Art und Smithsonian (CC0), Museum Rietberg (CC BY-SA), via museum-digital: "
                  "Ethnologisches Museum, Staatliche Museen zu Berlin (CC BY-NC-SA) und Übersee-Museum Bremen "
@@ -157,6 +158,22 @@ def name_terms(name):
         else:
             prev = None
     return out
+
+
+def term_text(y):
+    """A term of the current name with its concept, as text for the Excel file."""
+    head = f"{y['term']}{' ' + y['mark'] if y['mark'] else ''} → "
+    if y["material"]:
+        return head + f"Material {y['material'][1]} (AAT {y['material'][0]})"
+    if y["card"]:
+        st = {"sup": "gestützt", "pos": "möglich", "no": "nicht gestützt"}[y["status"]]
+        return head + card_text(y["card"]) + f" [{st}, Rang {y['rank']}]"
+    return head + "kein Konzept" + (f" (GND {y['gnd'][0]}: {y['gnd'][1]})" if y["gnd"] else "")
+
+
+def label(card):
+    """Label of a concept (vocab_external.Suggester.card) in texts: German, else English marked «engl.»."""
+    return card["de"] or f"{card['en']} (engl.)"
 
 
 def natives(s):
@@ -290,7 +307,8 @@ def main():
     ap.add_argument("--data", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--k", type=int, default=12)
-    ap.add_argument("--min-count", type=int, default=3, help="min. frequency of a term in the VMZ catalogue")
+    ap.add_argument("--vocab", help="folder of vocab_external.py (vocab_external.json, text embedding cache; "
+                                    "default DATA_DIR/vocab)")
     ap.add_argument("--records", help="records file (default DATA_DIR/records.jsonl); an older, shorter "
                                       "records file uses the first rows of the embeddings")
     ap.add_argument("--text-model", default="siglip2", help="SigLIP 2 variant for neighbours and terms "
@@ -329,26 +347,24 @@ def main():
     print(f"queries (VMZ): {len(q_idx)}; reference: {len(ref)} {dict(Counter(src[ref]))}")
 
     # ---------------------------------------------------------------- vocabularies
-    tcount = Counter(type_term(c["name"]) for c in cat)
-    de_vocab = sorted(t for t, n in tcount.items() if n >= a.min_count and len(t) >= 3 and t[0].isupper())
     en_counts = Counter(clean(recs[j]["name"]) for j in ref if recs[j]["source"] in ("phil", "cma", "si"))
     en_vocab = sorted(n for n, c in en_counts.items() if c >= 2 and len(n) > 2)
     terms_q = {i: name_terms(recs[i]["name"]) for i in q_idx}
     hyp_vocab = sorted({t for ts in terms_q.values() for t, _ in ts})
-    tr = translate(de_vocab + hyp_vocab, data / "vmz_vocab_en.json")
+    tr = translate(hyp_vocab, data / "vmz_vocab_en.json")       # one route from a German name term to the AAT
     emb = Embedder(a.text_model)
-    T_de = emb.texts([EN_TEMPLATE.format(tr[v]) for v in de_vocab])
     T_en = emb.texts([EN_TEMPLATE.format(v) for v in en_vocab])
-    T_h = emb.texts([EN_TEMPLATE.format(tr[v]) for v in hyp_vocab])
-    sup, pos = round(SUP_SHARE * len(de_vocab)), round(POS_SHARE * len(de_vocab))
-    print(f"vocabularies: VMZ-DE {len(de_vocab)} terms (>= {a.min_count} objects), EN {len(en_vocab)}, "
-          f"terms in current names {len(hyp_vocab)}")
-    # hubness correction: subtract half of each term's mean similarity over all images (reference + VMZ);
+    # hubness correction: subtract half of each text's mean similarity over all images (reference + VMZ);
     # 0.5 was the better compromise between specific and generic terms in the VMZ test
     allimg = E[a.text_model][np.concatenate([ref, q_idx])]
-    b_de, b_en, b_h = (0.5 * (allimg @ T.T).mean(0) for T in (T_de, T_en, T_h))
-    de_pos = {t: k for k, t in enumerate(de_vocab)}
-    h_pos = {t: k for k, t in enumerate(hyp_vocab)}
+    b_en = 0.5 * (allimg @ T_en.T).mean(0)
+    # external controlled vocabularies (vocab_external.py): AAT concepts and NMVW terms, ranked against the photo
+    # with their English labels, shown with the German label (AAT-Deutsch, GND) where there is one
+    vdir = Path(a.vocab) if a.vocab else data / "vocab"
+    voc = Vocab(vdir / "vocab_external.json")
+    sug = Suggester(voc, TextCache(a.text_model, vdir, emb=emb), allimg, tr, vdir)
+    print(f"vocabularies: external {sug.n} concepts (AAT + NMVW), EN names {len(en_vocab)}, "
+          f"terms in current names {len(hyp_vocab)}")
 
     # ---------------------------------------------------------------- native-name index (catalogue)
     nat_idx = defaultdict(Counter)
@@ -410,17 +426,10 @@ def main():
             shown.setdefault(key, nm)
         knn_names = [(shown[k], c) for k, c in groups.most_common(6)]
 
-        s_de = T_de @ e - b_de
-        order_de = np.argsort(-s_de)
-        zs_de = [de_vocab[t] for t in order_de[:8]]
+        # concepts of the controlled vocabularies: the 8 best for the photo, and the concept of every name term
+        sugg, named = sug.analyse(e, terms_q[i], k=8)
         s_en = T_en @ e - b_en
         zs_en = [en_vocab[t] for t in np.argsort(-s_en)[:5]]
-        s_h = T_h @ e - b_h
-        term_ranks = []
-        for t, mark in terms_q[i]:
-            v = s_h[h_pos[t]]
-            rank = 1 + int((s_de > v).sum()) - (1 if t in de_pos and s_de[de_pos[t]] > v else 0)
-            term_ranks.append((t, mark, rank))
 
         mkb_hits = mkb.matches([t for t, _ in terms_q[i]]) if mkb else []
         stats["mkb_objects"] += bool(mkb_hits)
@@ -429,22 +438,27 @@ def main():
             for t, k in nat_idx.get(n, Counter()).most_common(3):
                 nat.append((n, t, k))
 
-        # proxy statistics: is the type term of the current name (if certain) among the top VMZ terms?
+        # proxy statistics: is the concept of the certain type term of the current name among the 8 suggestions
+        # (same or narrower concept, all senses of the word as in compare_vocab.py), and where does it rank?
         tt = type_term(r["name"])
         certain = bool(terms_q[i]) and terms_q[i][0][0] == tt and terms_q[i][0][1] == ""
         calib = r.get("flag") != "Figur"          # calibration only on the «?» / quotation-mark sample
         if r.get("flag") == "Figur":
-            fig_terms.update(zs_de[:3])
+            fig_terms.update(label(x) for x in sugg[:3])
             fig_en.update(zs_en[:2])
             fig_nb.update(clean_de(recs[j]["name"]) if recs[j]["source"] in ("mrz", "md", "mkb") else clean(recs[j]["name"])
                           for j in top[:5])
-        if tt in de_pos and certain and calib:
-            rk = 1 + int((s_de > s_de[de_pos[tt]]).sum())
+        if certain and calib:
             stats["type_n"] += 1
-            stats["type_top8"] += rk <= 8
-            stats["type_sup"] += rk <= sup
-            stats["type_pos"] += sup < rk <= pos
-            stats["type_ranks"] += [rk]
+            ids = voc.match_de(tt, tr.get(tt))[0]
+            stats["type_same8"] += any(x["key"] in ids for x in sugg)
+            stats["type_hit8"] += any(voc.is_within(x["key"], t) for x in sugg for t in ids)
+            rk = named[0]["rank"]
+            if rk:
+                stats["type_mapped"] += 1
+                stats["type_sup"] += rk <= sug.sup
+                stats["type_pos"] += sug.sup < rk <= sug.possible
+                stats["type_ranks"] += [rk]
         if len(top_geo) >= 5 and calib:   # does the geographic layer confirm names more often than the visual one?
             n1, n2 = [recs[j]["name"] for j in top[:5]], [recs[j]["name"] for j in top_geo[:5]]
             if tt in tr and certain:
@@ -458,12 +472,12 @@ def main():
                     stats["geo_hyp_l2"] += matches(t, tr[t], n2)
         stats["geo_with_region"] += calib and bool(q_geo["region"] or q_geo["iso"])
         stats["geo_with_layer"] += calib and len(top_geo) >= 5
-        for t, mark, rank in term_ranks:
-            if mark == "?":
+        for x in named:
+            if x["mark"] == "?":
                 stats["hyp_n"] += 1
-                stats["hyp_sup"] += rank <= sup
-                stats["hyp_pos"] += sup < rank <= pos
-        rows.append(dict(i=i, top=top, sims=sims, knn=knn_names, de=zs_de, en=zs_en, terms=term_ranks, nat=nat,
+                stats["hyp_sup"] += x["status"] == "sup"
+                stats["hyp_pos"] += x["status"] == "pos"
+        rows.append(dict(i=i, top=top, sims=sims, knn=knn_names, de=sugg, en=zs_en, terms=named, nat=nat,
                          cat=c, catalog=catalog_fields(c, a.public) if c else [], geo=q_geo, top_geo=top_geo,
                          geo_sims=geo_sims, geo_level={j: proximity(q_geo, ref_geo[j]) for j in top_geo},
                          mkb=mkb_hits))
@@ -472,19 +486,20 @@ def main():
           f"p10 {np.percentile(top1_sims, 10):.3f}, p90 {np.percentile(top1_sims, 90):.3f}")
     if stats["type_n"]:
         tn = stats["type_n"]
-        print(f"type term of the current name (certain part, in vocabulary): n={tn}, top-8 {stats['type_top8'] / tn:.0%}, "
-              f"rank <= {sup}: {stats['type_sup'] / tn:.0%}, {sup + 1}-{pos}: {stats['type_pos'] / tn:.0%}, "
-              f"median rank {int(np.median(stats['type_ranks']))} of {len(de_vocab)}")
+        print(f"type term of the current name (certain part): n={tn}, concept found {stats['type_mapped'] / tn:.0%}; "
+              f"among the 8 suggestions: same {stats['type_same8'] / tn:.0%}, same or narrower {stats['type_hit8'] / tn:.0%}; "
+              f"rank <= {sug.sup}: {stats['type_sup'] / tn:.0%}, {sug.sup + 1}-{sug.possible}: {stats['type_pos'] / tn:.0%}, "
+              f"median rank {int(np.median(stats['type_ranks'])) if stats['type_ranks'] else '–'} of {sug.n}")
     if stats["hyp_n"]:
         hn = stats["hyp_n"]
-        print(f"«?» hypotheses: n={hn}, rank <= {sup}: {stats['hyp_sup'] / hn:.0%}, "
-              f"{sup + 1}-{pos}: {stats['hyp_pos'] / hn:.0%}")
+        print(f"«?» hypotheses: n={hn}, rank <= {sug.sup}: {stats['hyp_sup'] / hn:.0%}, "
+              f"{sug.sup + 1}-{sug.possible}: {stats['hyp_pos'] / hn:.0%}")
     print(f"geographic layer: region known for {stats['geo_with_region']} objects, >= 5 regional neighbours for "
           f"{stats['geo_with_layer']}; type term in top-5 names {stats['geo_type_l1']} visual vs {stats['geo_type_l2']} "
           f"regional (n={stats['geo_type_n']}); «?» hypotheses {stats['geo_hyp_l1']} vs {stats['geo_hyp_l2']} "
           f"(n={stats['geo_hyp_n']})")
     if fig_terms:
-        print("«Figur» objects – most frequent VMZ terms (top 3 each):", fig_terms.most_common(15))
+        print("«Figur» objects – most frequent concepts (top 3 each):", fig_terms.most_common(15))
         print("«Figur» objects – most frequent neighbour names (top 5 each):", fig_nb.most_common(12))
     print(f"objects with native name: {sum(bool(natives(x['cat'].get('native'))) for x in rows)}, "
           f"with catalogue matches for it: {sum(bool(x['nat']) for x in rows)}")
@@ -492,20 +507,22 @@ def main():
     for x in rows[:: max(1, n // 30)]:
         r = recs[x["i"]]
         print(f"\n{r['inv']:>11} {r['flag']:2} | {r['name'][:70]}")
-        print("     terms:", ", ".join(f"{t}{m and ' ' + m} #{k} ({tr[t]})" for t, m, k in x["terms"]))
-        print("     VMZ-DE:", ", ".join(f"{t} ({tr[t]})" for t in x["de"][:5]), "| EN:", ", ".join(x["en"][:3]))
+        print("     terms:", ", ".join(f"{y['term']}{y['mark'] and ' ' + y['mark']} -> "
+                                     + (f"Material {y['material'][1]}" if y["material"] else
+                                        f"{label(y['card'])} #{y['rank']}" if y["card"] else "–") for y in x["terms"]))
+        print("     vocabularies:", ", ".join(label(c) for c in x["de"][:5]), "| EN:", ", ".join(x["en"][:3]))
         print("     neighbours:", "; ".join(f"{a_} ×{b}" for a_, b in x["knn"][:4]))
         if x["nat"]:
             print("     same native name:", "; ".join(f"{a_} → {t} ×{k}" for a_, t, k in x["nat"][:3]))
 
     # machine-readable results (used by make_overview.py)
-    res = {"n": n, "ref": {str(k): int(v) for k, v in Counter(src[ref]).items()}, "vocab": len(de_vocab),
-           "sup": sup, "pos": pos,
+    res = {"n": n, "ref": {str(k): int(v) for k, v in Counter(src[ref]).items()}, "vocab": sug.n,
+           "vocab_built": voc.built, "sup": sug.sup, "pos": sug.possible,
            "stats": {k: (v if not isinstance(v, list) else int(np.median(v)) if v else None)
                      for k, v in stats.items()},
            "groups": dict(Counter(recs[i].get("flag") or "-" for i in q_idx)),
            "figures": {"n": sum(recs[i].get("flag") == "Figur" for i in q_idx),
-                       "vmz_terms": fig_terms.most_common(25), "en_terms": fig_en.most_common(15),
+                       "vocab_terms": fig_terms.most_common(25), "en_terms": fig_en.most_common(15),
                        "neighbour_names": fig_nb.most_common(25)},
            "objects": []}
     for x, s1 in zip(rows, top1_sims):
@@ -515,8 +532,11 @@ def main():
             "culture": r.get("culture", ""), "country": x["cat"].get("country", ""),
             "native": x["cat"].get("native", ""), "top1": round(s1, 3),
             "catalog": {lab: v for _, lab, v in x["catalog"]},
-            "terms": [{"term": t, "mark": m, "rank": k, "en": tr.get(t, "")} for t, m, k in x["terms"]],
-            "vmz_terms": [{"term": t, "en": tr.get(t, "")} for t in x["de"]], "en_terms": x["en"],
+            # terms of the current name -> concept (AAT/NMVW with GND, Trachsler), material, or none
+            "terms": [{"term": y["term"], "mark": y["mark"], "rank": y["rank"], "status": y["status"],
+                       "route": y["route"], "concept": y["card"], "material": y["material"], "gnd": y["gnd"],
+                       "trachsler": y["tra"]} for y in x["terms"]],
+            "vocab_terms": x["de"], "en_terms": x["en"],
             "neighbour_names": [{"name": nm, "count": k} for nm, k in x["knn"]],
             "native_matches": [{"native": nn, "term": t, "count": k} for nn, t, k in x["nat"]],
             "neighbours": [{"id": recs[j]["id"], "name": recs[j]["name"], "holder": recs[j].get("holder", ""),
@@ -531,7 +551,7 @@ def main():
                                 "proximity": x["geo_level"][j]} for j in x["top_geo"][:8]]})
     json.dump(res, open(out / "vmz_results.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
-    write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_sims, tr, sup, pos)
+    write_outputs(a, out, recs, data, rows, stats, n, ref, src, sug, top1_sims, tr)
 
 
 def thumb(src_path, dst, side, cache):
@@ -543,13 +563,10 @@ def thumb(src_path, dst, side, cache):
     return f"img/{dst.name}"
 
 
-def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_sims, tr, sup, pos):
+def write_outputs(a, out, recs, data, rows, stats, n, ref, src, sug, top1_sims, tr):
     esc = html.escape
     done = set(p.name for p in (out / "img").glob("*.jpg"))
-
-    def status(rank):
-        return "sup" if rank <= sup else "pos" if rank <= pos else "no"
-
+    sup, pos = sug.sup, sug.possible
     blocks = []
     for x in rows:
         r = recs[x["i"]]
@@ -584,12 +601,9 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
         else:
             geo_block = '<h3>Ähnlich und aus derselben Region</h3><small>Keine Herkunftsregion im Katalog.</small>'
 
-        hyp = [t for t in x["terms"] if t[1] == "?"]
-        hyp_state = ("na" if not hyp else "sup" if any(k <= sup for _, _, k in hyp)
-                     else "pos" if any(k <= pos for _, _, k in hyp) else "no")
-        term_chips = "".join(
-            f'<span class="chip {status(k)}" title="Rang im VMZ-Vokabular ({len(de_vocab)} Begriffe)">'
-            f'{esc(t)}{" " + m if m else ""} <i>#{k} · {esc(tr.get(t, ""))}</i></span>' for t, m, k in x["terms"])
+        hyp = [y["status"] for y in x["terms"] if y["mark"] == "?"]
+        hyp_state = "na" if not hyp else "sup" if "sup" in hyp else "pos" if "pos" in hyp else "no"
+        term_chips = "".join(name_term_html(y, esc, sug.n) for y in x["terms"])
         meta = [("Einheimisch", c.get("native")), ("Ethnie", c.get("ethnie")),
                 ("Region", ", ".join(v for v in (c.get("geo_region"), c.get("country")) if v)),
                 ("Gebrauch", c.get("use")), ("Material", c.get("material"))]
@@ -604,8 +618,10 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
                 if r.get("match") == "main object" else
                 '<small class="warn">nicht im Katalog gefunden</small>' if r.get("match") == "none" else "")
         nat = "".join(f'<span class="chip">{esc(t)} <i>×{k} ({esc(nn)})</i></span>' for nn, t, k in x["nat"][:4])
+        concepts = x["de"] + [y["card"] for y in x["terms"] if y["card"]]
         text = " ".join([r["inv"], r["name"], " ".join(v for _, _, v in x["catalog"]),
-                         " ".join(x["de"]), " ".join(x["en"]), " ".join(nm for nm, _ in x["knn"])]).lower()
+                         " ".join(f"{k['de']} {k['en']}" for k in concepts), " ".join(x["en"]),
+                         " ".join(nm for nm, _ in x["knn"])]).lower()
         fb = f"<small>{object_link(r['inv'], r['name'])}</small>" if a.public else ""
         blocks.append(f"""<section id="o-{safe}" data-flag="{esc(r['flag'])}" data-hyp="{hyp_state}" data-text="{esc(text)}">
 <div class="row"><div class="q"><img src="{qimg}" alt="" loading="lazy">
@@ -613,8 +629,8 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
 <small>Inv.-Nr. <b>{esc(r['inv'])}</b> · {esc(r['image_url'].replace('VMZ_objects-with-', '').replace('.pdf', ''))}</small>
 {fb}{note}{meta_html}<small class="log">{esc(log[:240])}{'…' if len(log) > 240 else ''}</small></div>
 <div class="sug">
-<h3>Begriffe im aktuellen Namen – Rang im VMZ-Vokabular</h3><div>{term_chips or '<small>–</small>'}</div>
-<h3>Passende Begriffe aus dem VMZ-Vokabular (Bild ↔ Text)</h3><div>{''.join(f'<span class="chip">{esc(t)} <i>{esc(tr.get(t, ""))}</i></span>' for t in x['de'])}</div>
+<h3>Begriffe im aktuellen Namen – in kontrollierten Vokabularen</h3><div>{term_chips or '<small>–</small>'}</div>
+<h3>Vorschläge aus kontrollierten Vokabularen (Bild ↔ Text)</h3><div>{''.join(card_html(k, esc) for k in x['de'])}</div>
 <h3>Englische Begriffe (Namen in den Vergleichssammlungen)</h3><div>{''.join(f'<span class="chip">{esc(t)}</span>' for t in x['en'])}</div>
 <h3>Namen der ähnlichsten Objekte (andere Sammlungen)</h3><div>{''.join(f'<span class="chip">{esc(nm)} <i>×{k}</i></span>' for nm, k in x['knn'])}</div>
 {f'<h3>Gleicher einheimischer Name im VMZ-Katalog</h3><div>{nat}</div>' if nat else ''}
@@ -634,7 +650,7 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
     page = f"""<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>VMZ Namensvorschläge</title>
 <style>
-{LIST_CSS}{FEEDBACK_CSS}</style></head><body>
+{LIST_CSS}{VOCAB_CSS}{FEEDBACK_CSS}</style></head><body>
 {feedback_html("../") if a.public else ""}
 {home_nav}
 <h1>Namensvorschläge für VMZ-Objekte mit unsicheren oder generischen Namen (PoC)</h1>
@@ -642,14 +658,23 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
 {sum(1 for x in rows if '?' in (recs[x['i']].get('flag') or ''))} mit «?», {sum(1 for x in rows if '«' in (recs[x['i']].get('flag') or ''))} mit Anführungszeichen,
 {sum(1 for x in rows if recs[x['i']].get('flag') == 'Figur')} nur «Figur» genannt.
 Vergleichsbestand: {len(ref)} Objekte anderer Sammlungen ({refmix}). Bildähnlichkeit: SigLIP 2 + DINOv2 (gewichtete Rangfusion, DINOv2 mit Gewicht {a.dino_weight});
-Begriffe: SigLIP 2 Bild ↔ Text gegen {len(de_vocab)} Typbegriffe aus den Objektnamen des VMZ-Katalogs (≥ {a.min_count} Objekte),
-vorher maschinell ins Englische übersetzt (grau: die Übersetzung, mit der gerechnet wurde).</p>
-<p><small>Rang = Platz des Begriffs unter allen {len(de_vocab)} VMZ-Begriffen für dieses Foto:
-<span class="chip sup">≤ {sup}: vom Bild gestützt</span><span class="chip pos">≤ {pos}: möglich</span><span class="chip">&gt; {pos}: nicht gestützt</span>
-Kalibrierung an den sicheren Typbegriffen der aktuellen Namen (n={stats['type_n']}): {stats['type_sup'] / tn:.0%} gestützt, {stats['type_pos'] / tn:.0%} möglich,
-Median-Rang {int(np.median(stats['type_ranks'])) if stats['type_ranks'] else '–'}. «Gestützt» ist also ein starkes Indiz (zufällig: 2 %),
-«nicht gestützt» nur ein schwaches – auch richtige Begriffe landen oft dort, besonders seltene Fachwörter oder falsch übersetzte.
-Von {stats['hyp_n']} «?»-Hypothesen sind {stats['hyp_sup'] / hn:.0%} gestützt, {stats['hyp_pos'] / hn:.0%} möglich.
+Begriffe aus kontrollierten Vokabularen: Getty AAT (mit AAT-Deutsch), GND, Thesaurus des Nationaal Museum van
+Wereldculturen (NMVW, heute Wereldmuseum) und Trachsler. SigLIP 2 vergleicht das Foto mit den englischen Bezeichnungen
+von {sug.n} Konzepten (die AAT-Konzepte, die der NMVW-Thesaurus verwendet, AAT-Deutsch übersetzt oder die GND verknüpft,
+und Begriffe des NMVW-Thesaurus ohne AAT-Entsprechung). Angezeigt wird die deutsche Bezeichnung (AAT-Deutsch oder GND),
+sonst die englische («engl.»), mit Links: AAT → Getty, GND → Deutsche Nationalbibliothek, NMVW → Wereldmuseum,
+Trachsler → xTree.</p>
+<p><small>Farbe bei den Begriffen im Namen: <span class="chip sup">unter den ersten 2 % ({sup}) für das Foto: vom Bild gestützt</span><span class="chip pos">unter den ersten 10 % ({pos}): möglich</span><span class="chip">sonst nicht gestützt</span>
+(Rang im Tooltip). Mehrdeutige Wörter (Trommel: Membranofon oder Säulentrommel): zuerst die Vorzugsbezeichnungen von
+AAT-Deutsch, Bedeutungen aus dem NMVW-Thesaurus und ganze Objekte vor Teilen; unter den übrigen wählt das Foto.
+«Oberbegriff»: nur das Wortende hat ein Konzept (Holzmaske → Maske). «Material»: Werkstoff im Namen (Ton, Stein).
+Trachsler: Klasse, deren Titel den Begriff nennt (nennen ihn mehrere, wählt das Foto).
+Kalibrierung an den sicheren Typbegriffen der aktuellen Namen (n={stats['type_n']}): Konzept gefunden bei
+{stats['type_mapped'] / tn:.0%}; unter den 8 Vorschlägen das gleiche Konzept bei {stats['type_same8'] / tn:.0%}, das gleiche
+oder ein engeres (Schwinge für Korb) bei {stats['type_hit8'] / tn:.0%}; vom Bild gestützt {stats['type_sup'] / tn:.0%},
+möglich {stats['type_pos'] / tn:.0%}, Median-Rang {int(np.median(stats['type_ranks'])) if stats['type_ranks'] else '–'} von {sug.n}.
+«Gestützt» ist also ein starkes Indiz (zufällig: 2 %), «nicht gestützt» nur ein schwaches – auch richtige Begriffe landen
+oft dort. Von {stats['hyp_n']} «?»-Hypothesen sind {stats['hyp_sup'] / hn:.0%} gestützt, {stats['hyp_pos'] / hn:.0%} möglich.
 Zweite Suchschicht: Unter den je 200 visuell ähnlichsten Objekten werden zusätzlich die aus derselben Weltregion
 bzw. demselben Land gezeigt (Herkunft aus dem VMZ-Katalog und den Angaben der Vergleichssammlungen); verfügbar bei
 {stats['geo_with_layer']} von {n} Objekten. Die Namen bestätigen dort den Typbegriff in
@@ -658,7 +683,8 @@ die «?»-Hypothese in {stats['geo_hyp_l2'] / max(1, stats['geo_hyp_n']):.0%} st
 Zahl auf den Karten = Bildähnlichkeit (SigLIP 2, höher = ähnlicher). Ausgeblendet sind {stats['hubs']} Vergleichsobjekte,
 die bei {stats['hub_max']} oder mehr Fotos unter den Top 5 wären («Hubs», z. B. kleine Glasfragmente).
 Vorschläge sind Hinweise – entscheiden muss die Fachperson.
-{RIGHTS_PUBLIC + ' ' + CATALOG_PUBLIC if a.public else 'Bilder und Katalogdaten: intern, nicht veröffentlichen.'}</small></p></div>
+{RIGHTS_PUBLIC + ' ' + CATALOG_PUBLIC if a.public else 'Bilder und Katalogdaten: intern, nicht veröffentlichen.'}
+{VOCAB_CREDIT}</small></p></div>
 <div class="bar">{home_bar}{switch}<input id="q" type="search" placeholder="Suche: Inventarnummer, Name, Begriff, Region …" aria-label="Suche">
 <select id="flag" aria-label="Markierung"><option value="">alle Gruppen</option><option value="?">nur «?»</option><option value="«»">nur Anführungszeichen</option><option value="Figur">nur «Figur» (generischer Name)</option></select>
 <select id="hyp" aria-label="Hypothese"><option value="">alle Hypothesen</option><option value="sup">«?»-Hypothese gestützt</option><option value="pos">«?»-Hypothese möglich</option><option value="no">«?»-Hypothese nicht gestützt</option></select>
@@ -677,8 +703,8 @@ function upd(){{const s=q.value.trim().toLowerCase(); let k=0;
     ws = wb.active
     ws.title = "Vorschläge"
     ws.append(["Inventarnummer", "Objektname (aktuell)", "Markierung", "Katalog", "Einheimischer Name", "Ethnie",
-               "Land", f"Begriffe im Namen (Rang von {len(de_vocab)}; ≤{sup} gestützt, ≤{pos} möglich)",
-               "VMZ-Begriffe (Bild↔Text, mit MT-Übersetzung)", "Englische Begriffe",
+               "Land", f"Begriffe im Namen → kontrollierte Vokabulare (gestützt: Rang ≤ {sup} von {sug.n}, möglich: ≤ {pos})",
+               "Vorschläge aus kontrollierten Vokabularen (Bild↔Text)", "Englische Begriffe",
                "Namen ähnlicher Objekte", "Gleicher einheimischer Name im Katalog",
                "Ähnlichste Objekte (Name | Museum | Link)", "Ähnlichkeit Top-1 (SigLIP 2)",
                "Herkunftsregion", "Ähnlich und aus derselben Region (Name | Museum | Link)",
@@ -688,8 +714,8 @@ function upd(){{const s=q.value.trim().toLowerCase(); let k=0;
         r, c = recs[x["i"]], x["cat"]
         ws.append([r["inv"], r["name"], r["flag"], r["match"] if r["match"] != "exact" else "",
                    c.get("native", ""), c.get("ethnie", ""), c.get("country", ""),
-                   "; ".join(f"{t}{m and ' ' + m} #{k} ({tr.get(t, '')})" for t, m, k in x["terms"]),
-                   "; ".join(f"{t} ({tr.get(t, '')})" for t in x["de"]), "; ".join(x["en"]),
+                   "\n".join(term_text(y) for y in x["terms"]),
+                   "\n".join(card_text(k) for k in x["de"]), "; ".join(x["en"]),
                    "; ".join(f"{nm} ×{k}" for nm, k in x["knn"]),
                    "; ".join(f"{t} ×{k} ({nn})" for nn, t, k in x["nat"]),
                    "\n".join(f"{recs[j]['name'][:60]} | {recs[j].get('holder', '')[:40]} | {recs[j]['url']}"
