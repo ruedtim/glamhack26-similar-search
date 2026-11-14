@@ -21,6 +21,7 @@ from PIL import Image
 
 REPO = "https://github.com/ruedtim/glamhack26-similar-search"
 SITE = "https://ruedtim.github.io/glamhack26-similar-search/"
+ZIP = REPO + "/releases/latest/download/glamhack26-similar-search-offline.zip"   # GitHub release asset (make_offline_zip.py)
 CHROME = ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "google-chrome", "chromium", "chrome"]
 GROUPS = [
     ("Ähnliche Objekte liefern den Fachbegriff",
@@ -316,7 +317,7 @@ a{{color:var(--acc)}}
 <div class="fig"><b>{st.get('hyp_sup', 0) / hn:.0%}</b><span>der {st.get('hyp_n', 0)} «?»-Hypothesen vom Foto klar gestützt</span></div>
 <div class="fig"><b>≈ 2 Min.</b><span>Rechenzeit für alle Vorschläge auf einem Laptop</span></div>
 </div>
-<div class="links"><a href="review/index.html">Alle {res['n']} Objekte durchsehen</a><a href="review/vmz_suggestions.xlsx">Vorschläge als Excel</a><a href="uebersicht.pdf">Diese Übersicht als PDF</a><a href="{REPO}">Code und Methode</a></div>
+<div class="links"><a href="review/index.html">Alle {res['n']} Objekte durchsehen</a><a href="review/vmz_suggestions.xlsx">Vorschläge als Excel</a><a href="uebersicht.pdf">Diese Übersicht als PDF</a><a href="{ZIP}">Offline-Version (ZIP)</a><a href="{REPO}">Code und Methode</a></div>
 
 <h2>So funktioniert es</h2>
 <ol class="steps">

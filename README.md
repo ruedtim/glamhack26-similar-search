@@ -5,8 +5,10 @@
 [all 1,019 objects with suggestions](https://ruedtim.github.io/glamhack26-similar-search/review/index.html)
 ([Excel](https://ruedtim.github.io/glamhack26-similar-search/review/vmz_suggestions.xlsx)).
 
-**Offline copy:** `make_offline_zip.py` packs the same pages into one ZIP (41 MB). Unpack it and double-click
-`START.html`. It works in any current browser, without a web server or internet.
+**Offline copy:** [download the ZIP](https://github.com/ruedtim/glamhack26-similar-search/releases/latest/download/glamhack26-similar-search-offline.zip)
+(41 MB, attached to the latest [release](https://github.com/ruedtim/glamhack26-similar-search/releases)). Unpack it
+and double-click `START.html`. It works in any current browser, without a web server or internet.
+`make_offline_zip.py` builds it from `docs/`.
 
 The raw challenge data (VMZ catalogue export as Excel, «Objektliste» PDFs) is **not** in this repository.
 
@@ -413,7 +415,8 @@ PRM 1,475, Rietberg 893).
 - `make_offline_zip.py` builds the ZIP with `START.html` and `LIESMICH.txt`. Before zipping it checks that every
   local link, image and anchor exists, that nothing is loaded from the internet, and that all file names are
   ASCII (Windows does not always unpack other names correctly; five thumbnails of «Stü …» objects were
-  renamed for this).
+  renamed for this). The ZIP is attached to the GitHub release `offline-2026-11-14`; the overview and this
+  README link the latest release's ZIP.
 - The PDF names the online address.
 - The Rietberg licence is corrected to CC BY-SA (Open Data Zürich). The harvester had recorded CC BY, and
   this was in `vmz_results.json`; the pages already said CC BY-SA.
@@ -451,7 +454,7 @@ venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_
 GPU_SHARE=0.5 venv/bin/python embed.py --data data --queries queries --models siglip2,dinov2,siglip2_so400m
 GPU_SHARE=0.5 venv/bin/python suggest_vmz.py --data data --public --out docs/review --text-model siglip2_so400m   # ~1.5 min
 venv/bin/python make_overview.py --data data --results docs/review/vmz_results.json --out docs --pdf   # PDF: headless Chrome
-venv/bin/python make_offline_zip.py             # -> dist/glamhack26-similar-search-offline.zip (gitignored)
+venv/bin/python make_offline_zip.py             # -> dist/glamhack26-similar-search-offline.zip (gitignored; upload to a release)
 
 # 5. comparisons
 venv/bin/python compare_refs.py --data data --before data/records_before_more.jsonl   # old vs. new reference set
