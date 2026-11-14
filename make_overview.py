@@ -4,18 +4,24 @@ Reads the results of suggest_vmz.py (OUT/vmz_results.json) and writes docs/index
 docs/img/. The examples below are chosen by hand; all numbers (ranks, status, neighbours) come from the
 results file, so the page stays correct after a re-run. Check the hand-written sentences after a re-run.
 
-Usage: python make_overview.py --data DATA_DIR --results docs/review/vmz_results.json --out docs
+Usage: python make_overview.py --data DATA_DIR --results docs/review/vmz_results.json --out docs --pdf
 """
 import argparse
 import html
 import json
 import re
+import shutil
+import subprocess
+import tempfile
+import unicodedata
 from collections import Counter
 from pathlib import Path
 
 from PIL import Image
 
 REPO = "https://github.com/ruedtim/glamhack26-similar-search"
+SITE = "https://ruedtim.github.io/glamhack26-similar-search/"
+CHROME = ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "google-chrome", "chromium", "chrome"]
 GROUPS = [
     ("Ähnliche Objekte liefern den Fachbegriff",
      "Die visuell ähnlichsten Objekte aus anderen Sammlungen tragen oft schon den passenden Namen.",
@@ -161,11 +167,31 @@ def img(src, dst, side):
     return f"img/{dst.name}"
 
 
+def fname(s):
+    """ASCII-only file name / HTML id part; same as suggest_vmz.fname (the links into the list need the same ids)."""
+    s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode()
+    return re.sub(r"[^\w.-]+", "_", s, flags=re.ASCII)
+
+
+def print_pdf(page, pdf):
+    """Print the overview with headless Chrome; the page's print CSS gives the A4 layout."""
+    exe = next((c for c in CHROME if Path(c).exists() or shutil.which(c)), None)
+    if not exe:
+        print("Chrome not found – PDF not written")
+        return
+    with tempfile.TemporaryDirectory() as prof:
+        subprocess.run([exe, "--headless", "--disable-gpu", "--no-pdf-header-footer", f"--user-data-dir={prof}",
+                        "--virtual-time-budget=10000", f"--print-to-pdf={pdf.resolve()}", page.resolve().as_uri()],
+                       check=True, capture_output=True, timeout=300)
+    print("wrote", pdf)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", required=True)
     ap.add_argument("--results", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--pdf", action="store_true", help="also print OUT/uebersicht.pdf with headless Chrome")
     a = ap.parse_args()
     data, out = Path(a.data), Path(a.out)
     (out / "img").mkdir(parents=True, exist_ok=True)
@@ -197,7 +223,7 @@ def main():
                   if fig.get("n") else "")
 
     def card(o):
-        safe = re.sub(r"[^\w.-]+", "_", o["inv"])
+        safe = fname(o["inv"])
         q = img(data / o["img"], out / "img" / f"q_{safe}.jpg", 420)
         chips = "".join(
             f'<span class="chip {status(t["rank"], res)}">{esc(t["term"])}{" " + t["mark"] if t["mark"] else ""}'
@@ -208,14 +234,14 @@ def main():
             if nb.get("publish_image") is False:        # rights: name + link only
                 pic = '<span class="noimg">Bild nicht veröffentlicht</span>'
             else:
-                t = img(data / nb["img"], out / "img" / ("r_" + re.sub(r"[^\w.-]+", "_", nb["id"]) + ".jpg"), 240)
+                t = img(data / nb["img"], out / "img" / ("r_" + fname(nb["id"]) + ".jpg"), 240)
                 pic = f'<img src="{t}" alt="" loading="lazy">'
             nbs.append(f'<a class="nb" href="{esc(nb["url"])}" target="_blank" rel="noopener">'
                        f'{pic}<span class="nbn">{esc(nb["name"][:48])}</span>'
                        f'<span class="nbh">{esc(short_holder(nb["holder"]))}</span></a>')
         place = ", ".join(x for x in (o.get("culture"), o.get("country")) if x and x != "(ohne Zuordnung)")
         return f"""<article class="ex">
-<figure class="q"><img src="{q}" alt="Foto des Objekts {esc(o['inv'])}"><figcaption>Inv.-Nr. {esc(o['inv'])}{' · ' + esc(place[:70]) if place else ''}</figcaption></figure>
+<figure class="q"><img src="{q}" alt="Foto des Objekts {esc(o['inv'])}"><figcaption>Inv.-Nr. {esc(o['inv'])}{' · ' + esc(place[:70]) if place else ''}<a class="more" href="review/index.html#o-{safe}">Ganzer Eintrag in der Gesamtliste →</a></figcaption></figure>
 <div class="body"><h4>{esc(o['name'])}</h4>
 <div class="chips">{chips}</div>
 <p>{esc(notes(o, res))}</p>
@@ -251,7 +277,7 @@ h2{{font-size:22px;margin:40px 0 12px}} h3{{font-size:19px;margin:28px 0 2px}} h
 ol.steps{{padding-left:20px;max-width:820px}} ol.steps li{{margin:6px 0}}
 .ex{{display:grid;grid-template-columns:210px 1fr;gap:20px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0;break-inside:avoid}}
 .q{{margin:0}} .q img{{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:8px}}
-.q figcaption{{font-size:12px;color:var(--mut);margin-top:6px}}
+.q figcaption{{font-size:12px;color:var(--mut);margin-top:6px}} .q .more{{display:block;margin-top:4px}} .prt{{display:none}}
 .body p{{margin:6px 0}} .lab{{font-size:12px;color:var(--mut);font-weight:600;margin-top:10px!important}}
 .chips{{display:flex;flex-wrap:wrap;gap:6px}}
 .chip{{background:var(--chip);border-radius:999px;padding:2px 10px;font-size:13px}} .chip.sup{{background:var(--sup)}} .chip.pos{{background:var(--pos)}}
@@ -268,7 +294,7 @@ footer{{color:var(--mut);font-size:13px;border-top:1px solid var(--line);margin-
 a{{color:var(--acc)}}
 @media (max-width:640px){{.ex{{grid-template-columns:1fr}} .q img{{max-width:280px}} .nbs{{grid-template-columns:repeat(3,minmax(0,1fr))}}}}
 @media print{{@page{{size:A4;margin:12mm 13mm}} :root{{--bg:#fff;--card:#fff;--chip:#efece4;--sup:#d5ebd7;--pos:#f2e7c9;--fg:#1c1b19;--mut:#5d5b55;--line:#dedad0;--acc:#8a3b12}}
- body{{font-size:9.5pt;line-height:1.4}} main{{padding:0;max-width:none}} .links{{display:none}}
+ body{{font-size:9.5pt;line-height:1.4}} main{{padding:0;max-width:none}} .links,.q .more{{display:none}} .prt{{display:inline}} .scr{{display:none}}
  h1{{font-size:20pt;margin:0 0 8px}} .lead{{font-size:10pt}} h2{{font-size:13pt;margin:12px 0 4px}} h3{{font-size:11.5pt;margin:0 0 2px}} h4{{font-size:10.5pt;margin:0 0 4px}}
  .figs{{grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 2px}} .fig{{padding:6px 10px}} .fig b{{font-size:16pt}} .fig span{{font-size:8pt}}
  ol.steps{{font-size:8.8pt;margin:4px 0}} .gl{{margin:0 0 6px}}
@@ -283,14 +309,14 @@ a{{color:var(--acc)}}
 <h1>Bildähnlichkeit als Hilfe beim Umbenennen</h1>
 <p class="lead">Für {res['n']} Objekte mit unsicheren oder generischen Namen ({grp_text}) haben wir die Fotos mit
 {n_ref} Objekten aus anderen Sammlungen und mit {res['vocab']} Begriffen aus dem eigenen Katalog verglichen.
-Erste Resultate, Stand 13. November 2026.</p>
+<span class="scr">Erste Resultate, Stand 13. November 2026.</span><span class="prt">Stand 13.11.2026 · <a href="{SITE}">{SITE.removeprefix('https://').rstrip('/')}</a></span></p>
 <div class="figs">
 <div class="fig"><b>{res['n']}</b><span>Objekte mit Foto aus den Challenge-Daten</span></div>
 <div class="fig"><b>{n_ref}</b><span>Vergleichsobjekte aus anderen Sammlungen</span></div>
 <div class="fig"><b>{st.get('hyp_sup', 0) / hn:.0%}</b><span>der {st.get('hyp_n', 0)} «?»-Hypothesen vom Foto klar gestützt</span></div>
-<div class="fig"><b>≈ 2 Min.</b><span>Rechenzeit für alle Objekte auf einem Laptop</span></div>
+<div class="fig"><b>≈ 2 Min.</b><span>Rechenzeit für alle Vorschläge auf einem Laptop</span></div>
 </div>
-<div class="links"><a href="review/">Alle {res['n']} Objekte durchsehen</a><a href="review/vmz_suggestions.xlsx">Vorschläge als Excel</a><a href="uebersicht.pdf">Diese Übersicht als PDF</a><a href="{REPO}">Code und Methode</a></div>
+<div class="links"><a href="review/index.html">Alle {res['n']} Objekte durchsehen</a><a href="review/vmz_suggestions.xlsx">Vorschläge als Excel</a><a href="uebersicht.pdf">Diese Übersicht als PDF</a><a href="{REPO}">Code und Methode</a></div>
 
 <h2>So funktioniert es</h2>
 <ol class="steps">
@@ -316,8 +342,9 @@ Erste Resultate, Stand 13. November 2026.</p>
 
 <h2>Wie weiter</h2>
 <ul class="learn">
-<li>Fachpersonen prüfen die Vorschläge in der <a href="review/">Gesamtliste</a> (Filter nach «?» / Anführungszeichen und nach Hypothesen-Status).</li>
-<li>Vergleichsbestand gezielt um ethnografische Sammlungen mit Typbezeichnungen ausbauen: mehr aus museum-digital (das Ethnologische Museum Berlin hat dort rund 77000 Objekte), Exporte von MKB Basel, Museum Rietberg, Pitt Rivers Museum.</li>
+<li>Fachpersonen prüfen die Vorschläge in der <a href="review/index.html">Gesamtliste</a> (Filter nach «?», Anführungszeichen und «Figur» sowie nach Hypothesen-Status).</li>
+<li>Vergleichsbestand gezielt um ethnografische Sammlungen mit Typbezeichnungen ausbauen: mehr aus museum-digital (das Ethnologische Museum Berlin hat dort rund 77000 Objekte), vom Museum der Kulturen Basel auch die Bestände ausserhalb Afrikas mit Bildern (bisher: Afrika via PARC und die Philippinen; Europa nur als Text), Exporte des Museums Rietberg.</li>
+<li>Beim Pitt Rivers Museum eine Bildlizenz anfragen: Seine Bilder fliessen in die Ähnlichkeitssuche ein, dürfen online aber nicht gezeigt werden.</li>
 <li>Text einbeziehen: Eingangsbuch-Einträge und einheimische Namen sind oft der stärkste Einzelhinweis.</li>
 </ul>
 
@@ -326,6 +353,8 @@ Erste Resultate, Stand 13. November 2026.</p>
 </main></body></html>"""
     (out / "index.html").write_text(page, encoding="utf-8")
     print("wrote", out / "index.html", "with", sum(len(s) for _, _, s in GROUPS), "examples")
+    if a.pdf:
+        print_pdf(out / "index.html", out / "uebersicht.pdf")
 
 
 if __name__ == "__main__":

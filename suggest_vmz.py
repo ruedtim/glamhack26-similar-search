@@ -1,5 +1,5 @@
 """Name suggestions for the GLAMhack sample of the Völkerkundemuseum UZH (VMZ): objects whose names
-contain «?» or quotation marks (imported with ingest_vmz.py).
+contain «?» or quotation marks, and objects named only «Figur» (imported with ingest_vmz.py).
 
 Per object:
   - visually similar objects in OTHER collections (SigLIP 2 + DINOv2, reciprocal rank fusion) + their names
@@ -11,14 +11,17 @@ Per object:
     Korb #3, Worfel #400: does the photo support the hypothesis?
   - text signal: other catalogue objects with the same native name, and what they are called
 Writes OUT/index.html (+ thumbnails in OUT/img) and OUT/vmz_suggestions.xlsx.
-Internal material: photos and catalogue are not public.
+Without --public the page is internal (accession register, collector, provenance; do not publish).
+--public writes the published variant (docs/review), with a link back to the overview page (--home).
 
-Usage: GPU_SHARE=0.5 python suggest_vmz.py --data DATA_DIR --out vmz_review
+Usage: GPU_SHARE=0.5 python suggest_vmz.py --data DATA_DIR --out vmz_review --home ""          # internal
+       GPU_SHARE=0.5 python suggest_vmz.py --data DATA_DIR --public --out docs/review --text-model siglip2_so400m
 """
 import argparse
 import html
 import json
 import re
+import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -47,6 +50,13 @@ CATALOG_PUBLIC = ("Katalogdaten ohne Sammler, Herkunft, Eingangsbuch und interne
                   "Erwerbungen vor 1980 und ohne Sätze zu Personen, Erwerb oder Wert.")
 MT_MODEL = "Helsinki-NLP/opus-mt-de-en"
 MT_FRAME = "Ethnografische Sammlung: Maske, Trommel, {}"   # context makes single-word MT much better
+
+
+def fname(s):
+    """ASCII-only file name / HTML id part (inventory number, record id): the offline ZIP has to unpack on
+    Windows too, which does not always decode non-ASCII names in ZIPs. Same as make_overview.fname."""
+    s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode()
+    return re.sub(r"[^\w.-]+", "_", s, flags=re.ASCII)
 
 
 def translate(terms, cache_path):
@@ -248,7 +258,9 @@ def main():
     ap.add_argument("--hub-max", type=int, default=10,
                     help="hide reference objects that are among the top 5 of at least this many VMZ photos")
     ap.add_argument("--public", action="store_true",
-                    help="page without accession register / description excerpts (for publication)")
+                    help="published variant: no accession register, collector, provenance; filtered descriptions")
+    ap.add_argument("--home", default="../index.html",
+                    help="link back to the overview page, relative to OUT ('' = no link)")
     a = ap.parse_args()
     data, out = Path(a.data), Path(a.out)
     (out / "img").mkdir(parents=True, exist_ok=True)
@@ -498,14 +510,14 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
     for x in rows:
         r = recs[x["i"]]
         c = x["cat"]
-        safe = re.sub(r"[^\w.-]+", "_", r["inv"])
+        safe = fname(r["inv"])
         qimg = thumb(data / r["img"], out / "img" / f"q_{safe}.jpg", 320, done)
         def card(j, sim, badge=""):
             rj = recs[j]
             if a.public and not can_publish(rj):                   # rights: name + link only, no image
                 pic = '<div class="noimg">Bild nicht veröffentlicht – Link zur Quelle</div>'
             else:
-                t = thumb(data / rj["img"], out / "img" / ("r_" + re.sub(r"[^\w.-]+", "_", rj["id"]) + ".jpg"), 150, done)
+                t = thumb(data / rj["img"], out / "img" / ("r_" + fname(rj["id"]) + ".jpg"), 150, done)
                 pic = f'<img src="{t}" alt="" loading="lazy">'
             return (f'<a class="c" href="{esc(rj["url"])}" target="_blank" rel="noopener">'
                     f'{pic}<b>{esc(rj["name"][:70])}</b>'
@@ -550,7 +562,7 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
         nat = "".join(f'<span class="chip">{esc(t)} <i>×{k} ({esc(nn)})</i></span>' for nn, t, k in x["nat"][:4])
         text = " ".join([r["inv"], r["name"], " ".join(v for _, _, v in x["catalog"]),
                          " ".join(x["de"]), " ".join(x["en"]), " ".join(nm for nm, _ in x["knn"])]).lower()
-        blocks.append(f"""<section data-flag="{esc(r['flag'])}" data-hyp="{hyp_state}" data-text="{esc(text)}">
+        blocks.append(f"""<section id="o-{safe}" data-flag="{esc(r['flag'])}" data-hyp="{hyp_state}" data-text="{esc(text)}">
 <div class="row"><div class="q"><img src="{qimg}" alt="" loading="lazy">
 <b class="name">{esc(r['name'] or '–')}</b>
 <small>Inv.-Nr. <b>{esc(r['inv'])}</b> · {esc(r['image_url'].replace('VMZ_objects-with-', '').replace('.pdf', ''))}</small>
@@ -569,6 +581,9 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
     tn, hn = max(1, stats["type_n"]), max(1, stats["hyp_n"])
     refmix = ", ".join(f"{ {'phil': 'Mapping Philippine Material Culture', 'mrz': 'Museum Rietberg', 'cma': 'Cleveland Museum of Art', 'si': 'Smithsonian', 'md': 'museum-digital', 'mkb': 'Museum der Kulturen Basel (PARC)', 'prm': 'Pitt Rivers Museum'}.get(k, k)}: {v}"
                        for k, v in Counter(src[ref]).items())
+    home = esc(a.home) if a.home else ""
+    home_nav = f'<nav class="top"><a href="{home}">← Zur Übersicht</a></nav>' if home else ""
+    home_bar = f'<a class="home" href="{home}" title="Zur Übersicht">← Übersicht</a>' if home else ""
     page = f"""<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>VMZ Namensvorschläge</title>
 <style>
@@ -580,6 +595,7 @@ h1{{font-size:24px;margin:8px 0}} h3{{font-size:13px;color:var(--mut);margin:12p
 .bar input,.bar select{{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg)}}
 .bar input{{flex:1;min-width:200px}}
 section{{border-bottom:1px solid var(--line);padding:14px 0}}
+section{{scroll-margin-top:64px}} section:target{{background:var(--chip)}}   /* links from the overview land below the sticky bar */
 .row{{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}} .q{{width:260px;display:flex;flex-direction:column;gap:4px}}
 .sug{{flex:1;min-width:280px}} .grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}}
 .c{{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:3px}}
@@ -594,8 +610,11 @@ details.cat dd{{margin:0;color:var(--fg);white-space:pre-line}}
 .c small.geo{{color:var(--acc2);font-weight:600}}
 .noimg{{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;
 color:var(--mut);background:var(--chip);border-radius:4px;padding:6px}}
+nav.top{{font-size:13px;margin:4px 0 0}} nav.top a{{color:var(--mut);text-decoration:none}} nav.top a:hover{{color:var(--fg)}}
+.bar a.home{{white-space:nowrap;font-weight:600;text-decoration:none;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card)}}
 @media (max-width:600px){{.q{{width:100%}}}}
 </style></head><body>
+{home_nav}
 <h1>Namensvorschläge für VMZ-Objekte mit unsicheren oder generischen Namen (PoC)</h1>
 <div class="lead"><p>{n} Objekte aus der GLAMhack-Stichprobe des Völkerkundemuseums der Universität Zürich:
 {sum(1 for x in rows if '?' in (recs[x['i']].get('flag') or ''))} mit «?», {sum(1 for x in rows if '«' in (recs[x['i']].get('flag') or ''))} mit Anführungszeichen,
@@ -618,7 +637,7 @@ Zahl auf den Karten = Bildähnlichkeit (SigLIP 2, höher = ähnlicher). Ausgeble
 die bei {stats['hub_max']} oder mehr Fotos unter den Top 5 wären («Hubs», z. B. kleine Glasfragmente).
 Vorschläge sind Hinweise – entscheiden muss die Fachperson.
 {RIGHTS_PUBLIC + ' ' + CATALOG_PUBLIC if a.public else 'Bilder und Katalogdaten: intern, nicht veröffentlichen.'}</small></p></div>
-<div class="bar"><input id="q" type="search" placeholder="Suche: Inventarnummer, Name, Begriff, Region …" aria-label="Suche">
+<div class="bar">{home_bar}<input id="q" type="search" placeholder="Suche: Inventarnummer, Name, Begriff, Region …" aria-label="Suche">
 <select id="flag" aria-label="Markierung"><option value="">alle Gruppen</option><option value="?">nur «?»</option><option value="«»">nur Anführungszeichen</option><option value="Figur">nur «Figur» (generischer Name)</option></select>
 <select id="hyp" aria-label="Hypothese"><option value="">alle Hypothesen</option><option value="sup">«?»-Hypothese gestützt</option><option value="pos">«?»-Hypothese möglich</option><option value="no">«?»-Hypothese nicht gestützt</option></select>
 <small id="count"></small></div>

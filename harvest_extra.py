@@ -2,7 +2,7 @@
 
   - UZH objects: the 17 objects of the Ethnographic Museum UZH in «Mapping Philippine Material
     Culture» (Omeka collection 439) -> source "uzh" (these are the test queries)
-  - Museum Rietberg, objects from the Hans Himmelheber archive (open data, opendata.swiss, CC BY;
+  - Museum Rietberg, objects from the Hans Himmelheber archive (Open Data Zürich, also on opendata.swiss, CC BY-SA;
     German titles + English keywords + photo links) -> source "mrz"
   - more random pages of «Mapping Philippine Material Culture» -> source "phil"
 
@@ -78,7 +78,7 @@ def main():
     print(f"[phil] +{len(extra)} objects from pages {pages}")
     new += extra
 
-    # 3) Museum Rietberg (open data, CC BY)
+    # 3) Museum Rietberg (Open Data Zürich, CC BY-SA)
     rows = list(csv.DictReader(io.StringIO(sess().get(RIETBERG_CSV, timeout=60).content.decode("utf-8"))))
     rows = [r for r in rows if r["Link_to_Foto"].startswith("http") and f"mrz_{r['Inv_Nr']}" not in known]
     rows = rnd.sample(rows, min(a.rietberg, len(rows)))
@@ -94,7 +94,7 @@ def main():
             "desc": f"Schlagworte: {r.get('Schlagworte', '')}; Material: {r.get('Material', '')}",
             "url": f"https://rietberg.ch/sammlungen/{r['Inv_Nr'].lower().replace('.', '-')}",
             "image_url": r["Link_to_Foto"],
-            "licence": "CC BY (Museum Rietberg, opendata.swiss)",
+            "licence": "CC BY-SA (Museum Rietberg, Open Data Zürich)",
         })
     print(f"[mrz] {len(rows)} objects")
 

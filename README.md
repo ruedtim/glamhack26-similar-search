@@ -2,8 +2,11 @@
 
 **Results (German):** [overview of the most promising results](https://ruedtim.github.io/glamhack26-similar-search/)
 ([PDF](https://ruedtim.github.io/glamhack26-similar-search/uebersicht.pdf)) and
-[all 748 objects with suggestions](https://ruedtim.github.io/glamhack26-similar-search/review/)
+[all 1,019 objects with suggestions](https://ruedtim.github.io/glamhack26-similar-search/review/index.html)
 ([Excel](https://ruedtim.github.io/glamhack26-similar-search/review/vmz_suggestions.xlsx)).
+
+**Offline copy:** `make_offline_zip.py` packs the same pages into one ZIP (41 MB). Unpack it and double-click
+`START.html`. It works in any current browser, without a web server or internet.
 
 The raw challenge data (VMZ catalogue export as Excel, «Objektliste» PDFs) is **not** in this repository.
 
@@ -15,7 +18,7 @@ collections?* The idea is that comparable objects in other collections supply be
 
 **Feasible as a research aid that shows a curator evidence. Not as automatic renaming.**
 
-- In this proxy test, image similarity puts the correct name among the 5 nearest neighbours in about
+- In the proxy test, image similarity puts the correct name among the 5 nearest neighbours in about
   55–68 % of cases. The prerequisite is that the name occurs in the reference set at all. Chance is about 2–3 %.
 - Zero-shot naming against a fixed vocabulary (SigLIP 2, image↔term) is stronger than taking names
   from neighbours: Top-1 53 %, Top-5 78 %. The museum's own German vocabulary can serve as the term list.
@@ -25,13 +28,76 @@ collections?* The idea is that comparable objects in other collections supply be
 - The strongest single signal for the valiha is not the image but the text: «Eingangsbuch:
   Bambusguitarre (Valiha)». So the method should be **multimodal**: image + old inventory entries /
   emic names + region.
-- **Real sample (748 VMZ objects with «?» or quotation marks, see below):** the pipeline runs end to end
-  in ~2 min at half GPU load. It gives useful evidence for many objects: supported or unsupported «?»
-  hypotheses, more specific terms from the museum's own vocabulary, and convincing neighbours (winnowing
-  trays for «Korb (Worfel?)»). German terms have to be machine-translated to English before SigLIP 2
-  ranks them well. The coverage of the reference set is the main limit.
+- **Real sample (1,019 VMZ objects with «?», quotation marks or only «Figur»):** once the reference set is
+  embedded, the suggestions for all objects take about 1.5 min at half GPU load. They give useful evidence for
+  many objects:
+  - 31 % of the 475 «?» hypotheses are clearly supported by the photo (among the top 2 % of 2,434 VMZ terms;
+    by chance 2 %), another 29 % are possible;
+  - more specific terms from the museum's own vocabulary, and neighbours that already carry the right name
+    (10 of the 12 nearest neighbours of a «Goldgewicht» are gold weights);
+  - for objects named only «Figur», specific proposals such as «Kraftfigur, nkisi», «Sakyamuni Buddha» or «Puppe».
+- German terms have to be machine-translated to English before SigLIP 2 ranks them well. Ethnographic
+  collections with German type names help naming more than large art-museum sets. The coverage of the
+  reference set is the main limit.
 
-## Proxy evaluation
+## Current state (14.11.2026)
+
+**Query objects:** 1,019 VMZ objects with a photo: 510 with «?» and 242 with quotation marks (4 have both),
+from the two «Objektliste» PDFs, plus 271 objects named only «Figur» (separate photos).
+
+**Per object, the list shows** (`suggest_vmz.py`):
+- the visually most similar objects in other collections, with name, museum and link. Models: SigLIP 2 so400m
+  and DINOv2, weighted rank fusion (DINOv2 × 0.25). 21 «hub» objects, which would be among the top 5 for ≥ 10
+  photos, are hidden;
+- a second row «Ähnlich und aus derselben Region» (geographic layer, `geo.py`; 464 objects have one);
+- terms from the VMZ's own vocabulary (2,434 type terms from the catalogue names, machine-translated to
+  English), ranked against the photo;
+- the rank of every term in the current name («?» hypothesis check): rank ≤ 49 (top 2 %) = supported,
+  ≤ 243 (top 10 %) = possible. Calibration on the certain type terms of the current names (n = 370):
+  37 % supported, 34 % possible, median rank 95;
+- catalogue objects with the same native name, and objects with the same designation in the MKB
+  «Sammlung Europa» (text only; 263 VMZ objects have matches);
+- non-sensitive catalogue fields (see «Publication rules»).
+
+**Reference set: 27,610 objects from other collections**
+
+| Source | Objects | Route | Images on the public pages |
+|---|---|---|---|
+| Cleveland Museum of Art | 7,977 | Open Access API, CC0 | yes |
+| Museum der Kulturen Basel (MKB), African collection | 7,310 | open IIIF interface of PARC – Portal for African Research Collections (Universität Basel) | yes. PARC marks them «In Copyright»; an MKB employee approved publication for this project on 13.11.2026 (credit «Museum der Kulturen Basel») |
+| Smithsonian: Freer\|Sackler, National Museum of African Art, National Museum of the American Indian | 4,840 | bulk metadata on the AWS Registry of Open Data, CC0 media only | yes |
+| museum-digital: Ethnologisches Museum and Museum Europäischer Kulturen (Berlin), Übersee-Museum Bremen | 3,171 | open JSON API, searched with the 300 most frequent VMZ type terms | yes (CC BY-NC-SA, CC BY-SA) |
+| Mapping Philippine Material Culture | 1,944 | Omeka REST API (10,481 objects from 97 collections); includes 172 MKB and 167 PRM objects | yes, as comparison thumbnails with link (rights stay with the holding museums), except PRM |
+| Pitt Rivers Museum (PRM), Oxford | 1,475 | the PRM's public research microsites (Lower Gallery, Arms and Armour, Body Arts, Southern Sudan) | **no.** The images are used for the similarity computation only (non-commercial research use). Online publication needs a PRM licence, so the pages show name, museum and link |
+| Museum Rietberg: Hans Himmelheber archive | 893 | Open Data Zürich (also on opendata.swiss), CC BY-SA | yes |
+
+Text layer without images: MKB «Sammlung Europa» on data.bs.ch (73,733 records, CC BY 4.0).
+
+**Checked, not used:**
+- PRM Collections Online: its API key sits in the website code, so it is not used.
+- MKB online collection (onlinecollection.mkb.ch): its search answered HTTP 403 on 13.11.2026, also in a
+  browser. Not worked around.
+- Yukon «Searching for our heritage»: Cloudflare bot protection (HTTP 403). Only through cooperation.
+- Amutat (Alutiiq Museum): technically easy, but Indigenous heritage: ask first (CARE principles).
+- NMNH Anthropology: its open dump has no CC0 images. The Met: `/search` returned no results for automated access.
+- Museum Rietberg «Kamerun» (no image links), «Patolu» and «Drenowatz» (narrow topics).
+
+**Publication rules** (the public pages: `suggest_vmz.py --public`, `make_overview.py`):
+- Public: the VMZ photos and non-sensitive catalogue fields: dimensions, acquisition type and year, original
+  number, exhibitions, literature, documentation, maker, continent/world region/place/country, religion,
+  language, attribution note, number of units. Descriptions only for acquisitions before 1980. They can quote
+  the object description from the accession register («Eingangsbuch: Körbe … aus Palmblattfasern …»), but
+  sentences about persons, purchase/gift, collections, values or years from 1980 on are removed («[gekürzt]»).
+- Not public: the fields collector, provenance, accession register and internal check notes; supplier/donor
+  names; the raw Excel and the «Objektliste» PDFs.
+- Reference images: thumbnails with link and credit, MKB with consent, PRM never (see the table).
+
+## Development log (13–14.11.2026)
+
+How the PoC grew during the hackathon. Numbers are as measured at each step; the current state is
+described above.
+
+### Proxy evaluation
 
 487 objects from «Mapping Philippine Material Culture» with known names act as queries. Their nearest
 neighbours come only from *other* museums (other holder in the Phil database), or only from the
@@ -49,22 +115,7 @@ P@1/Hit@5 are computed over queries whose name occurs in the reference set. Phil
 dominated by «figure» (81 figures at CMA), so it is optimistic. Coverage is the real bottleneck:
 anything missing from the reference set cannot be found.
 
-## Data access of the comparison databases (as of 13.11.2026, only landing pages checked)
-
-| Database | Technical | Assessment |
-|---|---|---|
-| Mapping Philippine Material Culture | Omeka REST API, open, JSON + images; 10,481 objects from 97 collections (incl. MKB Basel, British Museum, Penn, Field Museum) | **Usable immediately.** Image rights stay with the holding museum |
-| Museum Rietberg | Website with MuseumPlus integration; **open data on opendata.swiss** (e.g. 932 Himmelheber objects with German titles + photo links, CC BY) | Partly usable immediately, ask for an export for the rest |
-| Pitt Rivers Museum | React app on an internal API that needs a key from the web frontend | Not used. Ask for an export |
-| Museum der Kulturen Basel | «CollectionConnection» (TMS) with an internal backend; **«Sammlung Europa» as open data** (data.bs.ch, CC BY) | Ask for an export. Partly covered via the Phil database |
-| Yukon «Searching for our heritage» | Cloudflare bot protection (HTTP 403) | Only through cooperation |
-| Amutat (Alutiiq Museum) | CollectiveAccess, 387 objects, images directly as JPG | Technically easy, but Indigenous heritage: ask first (CARE principles) |
-| Extra: Cleveland Museum of Art | Open Access API, CC0 | Usable immediately |
-| Extra: Smithsonian Open Access | Bulk JSON metadata on the AWS Registry of Open Data; images via ids.si.edu, CC0 | Freer\|Sackler (Asia) and National Museum of African Art usable. The NMNH Anthropology dump contains no CC0 images |
-| Museum Rietberg, further open data | «Kamerun» (CC0, but no image links), «Patolu» (Indian textiles) and «Drenowatz» (Chinese painting), both with image ZIPs (CC BY-SA) | Kamerun images only on the website: ask. Patolu/Drenowatz not used (narrow topics) |
-| Extra: The Met | `/search` returned no results for automated access | Not pursued further |
-
-## Dry run with 17 real UZH objects (13.11.2026)
+### Dry run with 17 real UZH objects
 
 The real UZH sample is not public. But «Mapping Philippine Material Culture» has 17 UZH objects
 (Omeka collection 439) with photo, inventory number and accession register note. Reference set:
@@ -87,7 +138,7 @@ open data with German titles, 500 Cleveland). Result page: `uzh_review.html`.
 Caveat: these 17 objects already carry fairly specific English names (recorded in 2014). The test
 checks object type and more specific alternatives, not renaming of German generic names.
 
-## Real GLAMhack sample: 748 VMZ objects with «?» or quotation marks (13.11.2026)
+### Real GLAMhack sample: 748 VMZ objects with «?» or quotation marks
 
 Data from the challenge (the raw files are not in this repository):
 - the catalogue export of the Völkerkundemuseum: 62,597 objects with 39 fields (name, native name, use,
@@ -102,7 +153,7 @@ PDFs are merged too. That leaves **748 objects with a photo** (16 pages have non
 - 2 have no match.
 
 Per object, `suggest_vmz.py` computes:
-- **neighbours** in the reference set (3,163 objects from other collections), as before;
+- **neighbours** in the reference set (then 3,163 objects from other collections);
 - **the museum's own vocabulary**: 2,434 type terms from the catalogue names that occur at least 3 times
   («Korb (Worfel?)» → «Korb», «Figur; Ton» → «Figur»), ranked against the photo with SigLIP 2;
 - **hypothesis check**: every term in the current name gets its rank in that vocabulary
@@ -152,13 +203,14 @@ Findings:
 Outputs:
 - `docs/index.html`: overview of the most promising examples (also as `docs/uebersicht.pdf`), made with
   `make_overview.py`.
-- `docs/review/`: all objects, with search and filters for «?»/quotation marks and hypothesis status, plus
-  `vmz_suggestions.xlsx` (one row per object for curators) and `vmz_results.json`.
-- Both are published via GitHub Pages. They contain no accession register or description excerpts.
-- Running `suggest_vmz.py` without `--public` writes an internal variant with those excerpts to
-  `vmz_review/` (gitignored).
+- `docs/review/`: all objects, with search and filters, plus `vmz_suggestions.xlsx` (one row per object for
+  curators) and `vmz_results.json`.
+- Both are published via GitHub Pages. At this step they contained no catalogue excerpts; the
+  non-sensitive fields came later (see «Second search layer» below and «Publication rules» above).
+- Running `suggest_vmz.py` without `--public` writes an internal variant with accession register,
+  collector and provenance (e.g. to `vmz_review/`, gitignored).
 
-## Extended reference set: +12,317 CC0 objects (13.11.2026, afternoon)
+### Extended reference set: +12,317 CC0 objects
 
 `harvest_more.py` adds two CC0 sources:
 - **Cleveland**: 7,477 objects from the departments Indian and Southeast Asian Art (incl. Tibet and
@@ -190,7 +242,7 @@ Median similarity of the nearest neighbour by region: Asia 0.781 → 0.805 (n = 
   lower bound: synonyms count as misses.
 - **Hubs:** some reference objects land in the top 5 for a great many photos (e.g. a Freer Gallery
   «Glass fragment» 158 times). `suggest_vmz.py` hides reference objects that are among the top 5 for
-  ≥ 10 VMZ photos; that hides 31 objects.
+  ≥ 10 VMZ photos; that hid 31 objects at this step (21 in the final run).
   - The name metrics stay the same with this filter: 15.7 % and 10.7 %.
   - Also tested, not used: CSLS (subtracting each reference object's mean similarity to its 10 nearest
     VMZ photos). It reduces the hubs, but confirms fewer «?» hypotheses (10.5 % → 7.4 %).
@@ -202,12 +254,9 @@ Median similarity of the nearest neighbour by region: Asia 0.781 → 0.805 (n = 
   type term 157 instead of 139; 34 % supported, 27 % possible; «?» hypotheses 32 % supported, 29 % possible.
 - **Conclusion:** ethnographic collections with object-type names would help most (exports from MKB,
   Rietberg, Pitt Rivers, or German-language collections on museum-digital), more than further
-  art-museum data.
+  art-museum data. The next steps followed this.
 
-The published pages (`docs/`) use the extended set and the hub filter (see the museum-digital section below for the
-current numbers).
-
-## German type names from museum-digital (13.11.2026, evening)
+### German type names from museum-digital
 
 `harvest_md.py` uses the open JSON API of museum-digital (robots.txt allows `/json/`). It searches the
 **300 most frequent type terms of the whole VMZ catalogue**, not the terms of the 748 sample objects, and
@@ -245,7 +294,7 @@ Effect on the 748 VMZ objects (top-5 neighbours, hub filter as on the published 
   under Schnabelgeiß, Habergeiß or Klapperbock. The closest functional match remains a Bamana
   hobbyhorse head (Cleveland).
 
-## Second search layer, more catalogue data, MKB and PRM (13.11.2026, late)
+### Second search layer, more catalogue data, MKB and PRM
 
 **Models: SigLIP 2 leads, DINOv2 only as a minor voice.** Measured on the 748 VMZ objects (top-5 neighbour
 names, hub filter, 18,651 reference objects):
@@ -259,7 +308,7 @@ names, hub filter, 18,651 reference objects):
 
 DINOv2 judges shape and texture only. SigLIP 2 was trained on image–text pairs and so finds objects «of
 the same kind», which is what naming needs. A third model is less promising than a larger SigLIP 2 variant
-(not tested yet).
+(tested in the next section: so400m is better).
 
 **Geographic layer (`geo.py`).**
 - Country, world region and continent come from the VMZ catalogue (world region and ISO code).
@@ -268,19 +317,18 @@ the same kind», which is what naming needs. A third model is less promising tha
   ethnic groups → country/world region. Only the English demonyms («Japanese», «South Asians») are
   hand-made.
 - Located share: Philippines database 100 %, Cleveland 97 %, Rietberg 87 %, Smithsonian 83 %.
-  museum-digital has places only in the object records; `enrich_md_places.py` fetches them into a cache,
-  which was still incomplete at the time of the run.
+  museum-digital has places only in the object records; `enrich_md_places.py` fetches them into a cache.
+  The cache was still incomplete for this measurement; in the final run it covers all 3,171 objects.
 - The list shows a second row per object: «Ähnlich und aus derselben Region» (the visually most similar
   objects among 200 per model, same world region or country).
 - Result: 446 objects have ≥ 5 regional neighbours. Their names confirm the type term less often than the
-  purely visual neighbours: 18 % vs 24 % (n = 280); «?» hypotheses 8 % vs 16 % (n = 223).
+  purely visual neighbours: 18 % vs 24 % (n = 280); «?» hypotheses 8 % vs 16 % (n = 223). Final run:
+  464 objects; 23 % vs 23 % (n = 284) and 9 % vs 13 % (n = 229).
 - So the layer is an additional view (comparison pieces from the same cultural context), not a better
   source of names.
 
 **More catalogue fields on the public list.**
-- Shown in a fold-out block per object: dimensions, acquisition type and year, original number,
-  exhibitions, literature, documentation, maker, continent/world region/place/country, religion, language,
-  attribution note, number of units.
+- Shown in a fold-out block per object: the fields listed under «Publication rules».
 - The description is shown only for acquisitions before 1980. Sentences about persons, purchase/gift,
   collections, values or years from 1980 on are removed automatically («[gekürzt]»).
 - Not published: collector, provenance, accession register and internal check notes.
@@ -296,14 +344,16 @@ the same kind», which is what naming needs. A third model is less promising tha
   - Another one is **«SVZ 9299», a mask from Ottenbach (ZH)**. The VMZ catalogue lists 09299
     «Schnabelgeiss» from the Knonauer Amt, so this may be the same object (to be checked).
 - The MKB online collection (onlinecollection.mkb.ch) is CC BY 4.0. On 13.11.2026 its search service
-  answered 403, also interactively in the browser. Fetching images from there runs as a separate task.
+  answered 403, also interactively in the browser, and this was not worked around. The MKB images came via
+  PARC instead (next section).
 
 **Pitt Rivers Museum.**
-- All 181 PRM objects in the Philippines database are in (`harvest_mkb.py --collection 275`).
-- The PRM's own database only works with a key embedded in its website and is not used. Legitimate
-  routes (documented APIs, IIIF, aggregators) are being checked separately.
+- The PRM objects of the Philippines database are in (`harvest_mkb.py --collection 275`; 167 in the final
+  reference set).
+- The PRM's own database (Collections Online) only works with a key embedded in its website and is not used.
+  The PRM's public research microsites turned out to be a legitimate route (next section).
 
-## Larger model, «Figur» objects, MKB and PRM images (13.11.2026, evening)
+### Larger model, «Figur» objects, MKB and PRM images
 
 **SigLIP 2 so400m instead of base.** `compare_models.py` compares the models on the 748 «?»/quotes objects
 against 18,825 reference objects:
@@ -331,7 +381,8 @@ against 18,825 reference objects:
   such as Wächterfigur, Hochzeitsfigur, Votivfigur and Götterfigur also come up.
 
 **Museum der Kulturen Basel, 7,310 objects with images** (`harvest_mkb_online.py`).
-- Source: the open IIIF interface of PARC – Portal for African Research Collections (Universität Basel).
+- Source: the open IIIF interface of PARC – Portal for African Research Collections (Universität Basel),
+  which the MKB links for its African collection.
 - The MKB online collection's search answered 403 on 13.11.2026 and was not worked around.
 - Index-card scans, photo-collection items, films and books are skipped.
 - No supplier names are stored.
@@ -354,52 +405,75 @@ Final run: 1,019 VMZ objects (506 «?», 238 quotes, 4 both, 271 «Figur») agai
 (Cleveland 7,977, MKB 7,310, Smithsonian 4,840, museum-digital 3,171, Philippines database 1,944,
 PRM 1,475, Rietberg 893).
 
+### Offline copy and navigation (14.11.2026)
+
+- The list of all objects links back to the overview (at the top and in the sticky filter bar). The overview
+  links each example to its entry in the list.
+- All links name `index.html` explicitly: opened from disk, a link to `review/` shows a folder listing.
+- `make_offline_zip.py` builds the ZIP with `START.html` and `LIESMICH.txt`. Before zipping it checks that every
+  local link, image and anchor exists, that nothing is loaded from the internet, and that all file names are
+  ASCII (Windows does not always unpack other names correctly; five thumbnails of «Stü …» objects were
+  renamed for this).
+- The PDF names the online address.
+- The Rietberg licence is corrected to CC BY-SA (Open Data Zürich). The harvester had recorded CC BY, and
+  this was in `vmz_results.json`; the pages already said CC BY-SA.
+
 ## Run
 
 ```bash
 uv venv --python 3.12 venv && uv pip install --python venv/bin/python torch transformers pillow numpy requests pymupdf sentencepiece protobuf openpyxl
+
+# 1. early proof of concept: Philippines database, Cleveland sample, 17 UZH objects
 venv/bin/python harvest.py --out data            # ~4 min, ~30 MB images (672 Phil + 500 CMA)
 venv/bin/python harvest_extra.py --out data      # ~4 min: 17 UZH objects, +1,100 Phil, 932 Rietberg
 GPU_SHARE=0.5 venv/bin/python embed.py --data data --queries queries   # incremental; queries/q_*.png
 venv/bin/python evaluate.py --data data --queries queries --html results.html
 GPU_SHARE=0.5 venv/bin/python suggest.py --data data --html uzh_review.html
-# real VMZ sample (internal files from the challenge, gitignored)
-venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_.xlsx \
-  --pdf VMZ_objects-with-questionmark.pdf --pdf VMZ_objects-with-quotation-marks.pdf --out data   # ~30 s
-venv/bin/python harvest_more.py --out data      # more reference objects: Cleveland departments, Smithsonian (CC0)
+
+# 2. reference set for the VMZ sample
+venv/bin/python harvest_more.py --out data      # Cleveland departments, Smithsonian (CC0)
 venv/bin/python harvest_md.py --out data        # German type names: museum-digital (EM Berlin, Übersee-Museum, MEK)
 venv/bin/python enrich_md_places.py --data data # places of the museum-digital objects (cache, resumable; slow API)
-venv/bin/python harvest_mkb.py --out data       # all MKB objects of the Philippines database (--collection 275: PRM)
+venv/bin/python harvest_mkb.py --out data       # MKB objects of the Philippines database
+venv/bin/python harvest_mkb.py --out data --collection 275                # PRM objects of the Philippines database
 venv/bin/python harvest_mkb_online.py --out data/mkb_online   # MKB via PARC (IIIF), staged; see its docstring
 venv/bin/python harvest_prm.py --out data/prm   # PRM research microsites, staged; see its docstring
 venv/bin/python merge_staged.py --data data --staged data/mkb_online --records records_mkb_online.jsonl
 venv/bin/python merge_staged.py --data data --staged data/prm --records records_prm.jsonl --no-publish-images
-venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_.xlsx --out data --images data/VMZ_figure --flag Figur
-GPU_SHARE=0.5 venv/bin/python embed.py --data data --queries queries --models siglip2,dinov2,siglip2_so400m
-GPU_SHARE=0.5 venv/bin/python compare_models.py --data data --models siglip2,siglip2_so400m,dinov2
 curl -o data/mkb_europa.json "https://data.bs.ch/api/explore/v2.1/catalog/datasets/100148/exports/json?select=inventarnummer,kurzbezeichnung,titel,datierung,material_technik,herkunft"
-venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_.xlsx --out data --catalog-only
-GPU_SHARE=0.5 venv/bin/python embed.py --data data --queries queries                            # incremental
-GPU_SHARE=0.5 venv/bin/python suggest_vmz.py --data data --public --out docs/review --text-model siglip2_so400m
-venv/bin/python make_overview.py --data data --results docs/review/vmz_results.json --out docs
+
+# 3. the VMZ sample (internal files from the challenge, gitignored)
+venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_.xlsx \
+  --pdf VMZ_objects-with-questionmark.pdf --pdf VMZ_objects-with-quotation-marks.pdf --out data   # ~30 s
+venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_.xlsx --out data --images data/VMZ_figure --flag Figur
+
+# 4. embeddings (incremental), pages, PDF, offline ZIP
+GPU_SHARE=0.5 venv/bin/python embed.py --data data --queries queries --models siglip2,dinov2,siglip2_so400m
+GPU_SHARE=0.5 venv/bin/python suggest_vmz.py --data data --public --out docs/review --text-model siglip2_so400m   # ~1.5 min
+venv/bin/python make_overview.py --data data --results docs/review/vmz_results.json --out docs --pdf   # PDF: headless Chrome
+venv/bin/python make_offline_zip.py             # -> dist/glamhack26-similar-search-offline.zip (gitignored)
+
+# 5. comparisons
 venv/bin/python compare_refs.py --data data --before data/records_before_more.jsonl   # old vs. new reference set
+GPU_SHARE=0.5 venv/bin/python compare_models.py --data data --models siglip2,siglip2_so400m,dinov2
 ```
 
 `GPU_SHARE=0.5` throttles the GPU to ~50 % load with a duty cycle (a pause after each batch, half the
 CPU threads). It's quieter and takes about twice as long. `embed.py` only computes vectors for new objects.
 
-`evaluate.py` was evaluated on the first reference set (1,172 objects), not yet on the extended one.
+`evaluate.py` was evaluated on the first reference set (1,172 objects), not on the extended one.
 
 `results.html` and `uzh_review.html` are generated locally and not published (images © the respective museums).
 
 - `harvest.py` – fetches images + names only from open, documented APIs (politely: max. 3–6 parallel requests).
-- `models.py` – SigLIP 2 base (multilingual image–text) and DINOv2 base (visual only). Pads images
+- `models.py` – SigLIP 2 base and so400m (multilingual image–text) and DINOv2 base (visual only). Pads images
   to a square instead of cropping them, so long objects stay complete.
-- `embed.py` – embeddings for the reference set and the query images (M2 Max/MPS: ~12 s per 1,000 images).
+- `embed.py` – embeddings for the reference set and the query images (M2 Max/MPS: ~12 s per 1,000 images with
+  the base models).
 - `evaluate.py` – proxy metrics, zero-shot with German terms, and `results.html` with neighbours.
-- `ingest_vmz.py` – imports the VMZ catalogue (Excel) and the photos from the «Objektliste» PDFs.
+- `ingest_vmz.py` – imports the VMZ catalogue (Excel), the photos from the «Objektliste» PDFs and the «Figur» photos.
 - `suggest_vmz.py` – suggestions for the VMZ objects: neighbours, VMZ vocabulary (via MT), hypothesis
-  ranks, native names; writes the review page, Excel and JSON.
+  ranks, native names, geographic layer, MKB text layer; writes the list page, Excel and JSON.
 - `harvest_more.py` – more reference objects (Cleveland departments, Smithsonian Freer|Sackler, NMAfA, NMAI; CC0).
 - `harvest_md.py` – reference objects with German type names from museum-digital (open JSON API).
 - `enrich_md_places.py` – places/peoples of the museum-digital objects for the geographic layer (cache only).
@@ -408,18 +482,24 @@ CPU threads). It's quieter and takes about twice as long. `embed.py` only comput
 - `harvest_mkb_online.py`, `harvest_prm.py` – MKB (via PARC) and Pitt Rivers Museum harvests (staged).
 - `merge_staged.py` – merges staged harvests; `compare_models.py` – compares the image models.
 - `compare_refs.py` – compares two reference sets on the VMZ objects (coverage and name confirmation).
-- `make_overview.py` – the overview page for the challenge owners (`docs/index.html`).
+- `make_overview.py` – the overview page for the challenge owners (`docs/index.html`, with `--pdf` also
+  `docs/uebersicht.pdf`).
+- `make_offline_zip.py` – the offline copy of `docs/` as a ZIP, with link check.
 
 The query images `q_uzh25744_figur_auf_sockel.png` and `q_uzh00001_bambusgitarre.png` are crops from
 the challenge slides. `data/` and `venv/` are not in the repository; rebuild them with the commands above.
 
 ## Recommendation for the hackathon
 
-1. **Reference set:** Phil database (API) + CC0 sources. At the hackathon, ask Rietberg, MKB and PRM directly for exports.
+1. **Reference set:** the PoC uses the Philippines database, CC0 sources, museum-digital, the MKB's African
+   collection (via PARC), the PRM microsites and Rietberg open data. Most useful next: the MKB's other
+   collections with images, an image licence (and an export) from the PRM, an export from the Rietberg, and
+   more from museum-digital (the Ethnologisches Museum Berlin alone has ~77,000 objects there).
 2. **Per object with a generic name:** show the top-k similar objects (with link and holding museum),
    plus SigLIP 2 zero-shot term suggestions from the UZH's own German vocabulary. The curator decides.
-3. **Add text signals:** search the accession register / emic names («Valiha») and the region
-   in other databases. Filter by region/culture to cut false neighbours.
+3. **Add text signals:** search the accession register / emic names («Valiha») in other databases. The
+   geographic layer already shows similar objects from the same region as a second row; it adds context
+   rather than better names.
 4. **Image quality:** use full-resolution images, several views if possible, and for long objects
    also query rotated versions. DINOv2 gains clearly from rotation, SigLIP 2 does not.
 5. **Ethics:** reference databases also contain outdated or colonial terms. Mark suggestions instead of

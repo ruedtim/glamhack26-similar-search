@@ -12,3 +12,6 @@ queries/ids.json
 
 # internal review page (contains accession register excerpts) – the public variant is docs/review/
 vmz_review/
+
+# offline ZIP of the pages (make_offline_zip.py), handed out directly
+dist/
