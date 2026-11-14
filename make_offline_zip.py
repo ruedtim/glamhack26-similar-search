@@ -1,6 +1,6 @@
 """Offline copy of the published pages as one ZIP: unpack it, double-click START.html. No web server, no internet.
 
-Copies docs/ (overview, PDF, list of all objects, Excel, JSON, thumbnails) into one folder, adds START.html (opens
+Copies docs/ (overview, the VMZ and MKB lists, Excel, JSON, thumbnails) into one folder, adds START.html (opens
 the overview) and LIESMICH.txt, checks the copy and zips it. The check fails the build if
   - a local link or image does not point to an existing file, or an anchor (#o-…) does not exist. Opened from disk,
     a browser shows a folder listing for "review/" instead of review/index.html, so links to folders count as errors;
@@ -33,7 +33,7 @@ START = """<!doctype html>
 <style>body{font:16px/1.5 system-ui,sans-serif;margin:40px 16px;background:#fafaf8;color:#1d1d1b}
 @media (prefers-color-scheme: dark){body{background:#191917;color:#ecebe6}} a{color:inherit}</style></head>
 <body><p>Die Übersicht öffnet sich gleich. Falls nicht: <a href="index.html">Übersicht öffnen</a>
-· <a href="review/index.html">alle Objekte</a> · <a href="uebersicht.pdf">PDF</a></p></body></html>
+· <a href="review/index.html">VMZ-Objekte</a> · <a href="review/mkb.html">MKB-Objekte</a></p></body></html>
 """
 
 README = """Bildähnlichkeit als Hilfe beim Umbenennen – Offline-Version
@@ -50,8 +50,8 @@ Stand {date}, gleicher Inhalt wie {site}
 INHALT
   START.html                    öffnet die Übersicht
   index.html                    Übersicht mit den vielversprechendsten Beispielen
-  uebersicht.pdf                die Übersicht als PDF
-  review/index.html             alle {n} Objekte mit Vorschlägen, Suche und Filtern
+  review/index.html             alle {n} VMZ-Objekte mit Vorschlägen, Suche und Filtern
+  review/mkb.html               alle {n_mkb} MKB-Objekte mit ähnlichen Objekten und Begriffen
   review/vmz_suggestions.xlsx   die Vorschläge als Tabelle (eine Zeile pro Objekt)
   review/vmz_results.json       alle Resultate, maschinenlesbar
 
@@ -60,7 +60,8 @@ Internet braucht es nur für die Links zu den Objektseiten der anderen Museen.
 Auf Smartphones und Tablets besser die Online-Version öffnen.
 
 RECHTE
-Fotos der VMZ-Objekte: © Völkerkundemuseum der Universität Zürich. Die Vergleichsbilder gehören den
+Fotos der VMZ-Objekte: © Völkerkundemuseum der Universität Zürich. Fotos der MKB-Objekte: © Museum der
+Kulturen Basel (Veröffentlichung für dieses Projekt vom MKB genehmigt). Die übrigen Vergleichsbilder gehören den
 jeweiligen Museen (Lizenzen in der Fusszeile der Übersicht). Pitt Rivers Museum: nur Name und Link,
 die Bilder werden aus Rechtegründen nicht gezeigt.
 """
@@ -97,6 +98,7 @@ def check(root):
             parser = Refs()
             parser.feed(text)
             pages[p] = parser
+            parser.text = text
             if re.search(r"""@import|url\(\s*['"]?(https?:)?//""", text):
                 problems.append(f"{p.relative_to(root)}: CSS loads from the internet")
     n_links = 0
@@ -120,6 +122,18 @@ def check(root):
                 problems.append(f"{rel}: missing file: {v}")
             elif u.fragment and target in pages and unquote(u.fragment) not in pages[target].ids:
                 problems.append(f"{rel}: missing anchor: {v}")
+    # paths inside embedded JSON (the MKB list renders its cards in the browser)
+    for page, parser in pages.items():
+        rel = page.relative_to(root).as_posix()
+        for m in re.finditer(r'"((?:\.\./)?img/[\w.-]+\.(?:jpe?g|png))"', parser.text):
+            n_links += 1
+            if not (page.parent / m.group(1)).is_file():
+                problems.append(f"{rel}: missing image in page data: {m.group(1)}")
+        for m in re.finditer(r'"((?:\.\./)?[\w/-]*index\.html)#(o-[\w.-]+)"', parser.text):
+            n_links += 1
+            target = (page.parent / m.group(1)).resolve()
+            if target not in pages or m.group(2) not in pages[target].ids:
+                problems.append(f"{rel}: missing anchor in page data: {m.group(1)}#{m.group(2)}")
     return problems, len(files), n_links
 
 
@@ -142,7 +156,10 @@ def main():
         stage = Path(tmp) / top
         shutil.copytree(docs, stage, ignore=shutil.ignore_patterns(".*"))      # no .nojekyll / .DS_Store
         (stage / "START.html").write_text(START, encoding="utf-8")
-        readme = README.format(date=datetime.date.today().strftime("%d.%m.%Y"), site=SITE, n=res["n"])
+        mkb = re.search(r'<script id="data" type="application/json">(.*?)</script>',
+                        (docs / "review" / "mkb.html").read_text(encoding="utf-8"), re.S)
+        n_mkb = len(json.loads(mkb.group(1))["obj"]) if mkb else 0
+        readme = README.format(date=datetime.date.today().strftime("%d.%m.%Y"), site=SITE, n=res["n"], n_mkb=n_mkb)
         (stage / "LIESMICH.txt").write_bytes(("﻿" + readme).replace("\n", "\r\n").encode("utf-8"))  # Notepad
         problems, n_files, n_links = check(stage)
         if problems:

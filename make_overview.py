@@ -1,18 +1,15 @@
-"""Overview page for the challenge owners: the most promising results on one page (+ PDF via Chrome).
+"""Overview page for the challenge owners: the most promising results on one page.
 
 Reads the results of suggest_vmz.py (OUT/vmz_results.json) and writes docs/index.html with images in
 docs/img/. The examples below are chosen by hand; all numbers (ranks, status, neighbours) come from the
 results file, so the page stays correct after a re-run. Check the hand-written sentences after a re-run.
 
-Usage: python make_overview.py --data DATA_DIR --results docs/review/vmz_results.json --out docs --pdf
+Usage: python make_overview.py --data DATA_DIR --results docs/review/vmz_results.json --out docs
 """
 import argparse
 import html
 import json
 import re
-import shutil
-import subprocess
-import tempfile
 import unicodedata
 from collections import Counter
 from pathlib import Path
@@ -22,7 +19,6 @@ from PIL import Image
 REPO = "https://github.com/ruedtim/glamhack26-similar-search"
 SITE = "https://ruedtim.github.io/glamhack26-similar-search/"
 ZIP = REPO + "/releases/latest/download/glamhack26-similar-search-offline.zip"   # GitHub release asset (make_offline_zip.py)
-CHROME = ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "google-chrome", "chromium", "chrome"]
 GROUPS = [
     ("Ähnliche Objekte liefern den Fachbegriff",
      "Die visuell ähnlichsten Objekte aus anderen Sammlungen tragen oft schon den passenden Namen.",
@@ -174,25 +170,11 @@ def fname(s):
     return re.sub(r"[^\w.-]+", "_", s, flags=re.ASCII)
 
 
-def print_pdf(page, pdf):
-    """Print the overview with headless Chrome; the page's print CSS gives the A4 layout."""
-    exe = next((c for c in CHROME if Path(c).exists() or shutil.which(c)), None)
-    if not exe:
-        print("Chrome not found – PDF not written")
-        return
-    with tempfile.TemporaryDirectory() as prof:
-        subprocess.run([exe, "--headless", "--disable-gpu", "--no-pdf-header-footer", f"--user-data-dir={prof}",
-                        "--virtual-time-budget=10000", f"--print-to-pdf={pdf.resolve()}", page.resolve().as_uri()],
-                       check=True, capture_output=True, timeout=300)
-    print("wrote", pdf)
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", required=True)
     ap.add_argument("--results", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--pdf", action="store_true", help="also print OUT/uebersicht.pdf with headless Chrome")
     a = ap.parse_args()
     data, out = Path(a.data), Path(a.out)
     (out / "img").mkdir(parents=True, exist_ok=True)
@@ -202,6 +184,7 @@ def main():
     esc = html.escape
     tn, hn = max(1, st.get("type_n", 0)), max(1, st.get("hyp_n", 0))
     n_ref = sum(res["ref"].values())
+    n_mkb = sum('"source": "mkb"' in line for line in open(data / "records.jsonl", encoding="utf-8"))  # MKB list
     label = {"sup": "gestützt", "pos": "möglich", "no": "nicht gestützt"}
     g = res.get("groups", {})
     n_q = sum(v for k, v in g.items() if "?" in k)
@@ -317,7 +300,7 @@ a{{color:var(--acc)}}
 <div class="fig"><b>{st.get('hyp_sup', 0) / hn:.0%}</b><span>der {st.get('hyp_n', 0)} «?»-Hypothesen vom Foto klar gestützt</span></div>
 <div class="fig"><b>≈ 2 Min.</b><span>Rechenzeit für alle Vorschläge auf einem Laptop</span></div>
 </div>
-<div class="links"><a href="review/index.html">Alle {res['n']} Objekte durchsehen</a><a href="review/vmz_suggestions.xlsx">Vorschläge als Excel</a><a href="uebersicht.pdf">Diese Übersicht als PDF</a><a href="{ZIP}">Offline-Version (ZIP)</a><a href="{REPO}">Code und Methode</a></div>
+<div class="links"><a href="review/index.html">Alle {res['n']} VMZ-Objekte durchsehen</a>{f'<a href="review/mkb.html">Alle {n_mkb} MKB-Objekte</a>' if n_mkb else ''}<a href="review/vmz_suggestions.xlsx">Vorschläge als Excel</a><a href="{ZIP}">Offline-Version (ZIP)</a><a href="{REPO}">Code und Methode</a></div>
 
 <h2>So funktioniert es</h2>
 <ol class="steps">
@@ -354,8 +337,6 @@ a{{color:var(--acc)}}
 </main></body></html>"""
     (out / "index.html").write_text(page, encoding="utf-8")
     print("wrote", out / "index.html", "with", sum(len(s) for _, _, s in GROUPS), "examples")
-    if a.pdf:
-        print_pdf(out / "index.html", out / "uebersicht.pdf")
 
 
 if __name__ == "__main__":

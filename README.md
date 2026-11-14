@@ -1,12 +1,13 @@
 # Similar Search – feasibility PoC for «To Be Renamed!» (GLAMhack 2026, project 321)
 
-**Results (German):** [overview of the most promising results](https://ruedtim.github.io/glamhack26-similar-search/)
-([PDF](https://ruedtim.github.io/glamhack26-similar-search/uebersicht.pdf)) and
-[all 1,019 objects with suggestions](https://ruedtim.github.io/glamhack26-similar-search/review/index.html)
-([Excel](https://ruedtim.github.io/glamhack26-similar-search/review/vmz_suggestions.xlsx)).
+**Results (German):** [overview of the most promising results](https://ruedtim.github.io/glamhack26-similar-search/),
+[all 1,019 VMZ objects with suggestions](https://ruedtim.github.io/glamhack26-similar-search/review/index.html)
+([Excel](https://ruedtim.github.io/glamhack26-similar-search/review/vmz_suggestions.xlsx)) and, behind the switch
+«VMZ | MKB», [all 7,310 MKB objects](https://ruedtim.github.io/glamhack26-similar-search/review/mkb.html) compared
+with the other collections.
 
 **Offline copy:** [download the ZIP](https://github.com/ruedtim/glamhack26-similar-search/releases/latest/download/glamhack26-similar-search-offline.zip)
-(41 MB, attached to the latest [release](https://github.com/ruedtim/glamhack26-similar-search/releases)). Unpack it
+(69 MB, attached to the latest [release](https://github.com/ruedtim/glamhack26-similar-search/releases)). Unpack it
 and double-click `START.html`. It works in any current browser, without a web server or internet.
 `make_offline_zip.py` builds it from `docs/`.
 
@@ -60,6 +61,19 @@ from the two «Objektliste» PDFs, plus 271 objects named only «Figur» (separa
 - catalogue objects with the same native name, and objects with the same designation in the MKB
   «Sammlung Europa» (text only; 263 VMZ objects have matches);
 - non-sensitive catalogue fields (see «Publication rules»).
+
+**MKB list (switch «VMZ | MKB» in both lists):** `suggest_mkb.py` takes all 7,310 MKB objects with an image
+(African collection, via PARC) as the starting point. Per object it shows the 8 most similar objects in the other
+collections (21,164 objects, including the 1,019 VMZ objects, which link to their entry in the VMZ list), the
+ranks of the terms in the current MKB name, and the best terms from the VMZ vocabulary. Models, vocabulary and
+thresholds are the same as in the VMZ list; the hub threshold scales with the number of photos (top 5 of ≥ 98
+photos; 6 objects hidden).
+- The photo supports the type term of the current MKB name for 54 % of the 7,283 objects with a certain name
+  (possible: 26 %, median rank 39; VMZ list, certain type terms: 37 %). Possible reasons: the MKB photos are
+  larger, and the names are mostly common type terms («Löffel», «Maske», «Armring»).
+- 1,754 MKB objects have a VMZ object among their 8 nearest neighbours (filter «mit ähnlichem VMZ-Objekt»).
+- The page holds all objects as JSON (4.7 MB) and shows 50 at a time. Search, filters (only «?», only «Figur»,
+  with a VMZ neighbour; name supported / possible / not supported) and paging run in the browser, also offline.
 
 **Reference set: 27,610 objects from other collections**
 
@@ -203,7 +217,7 @@ Findings:
   comparable object. The neighbours then only match by shape (spoons for paddles).
 
 Outputs:
-- `docs/index.html`: overview of the most promising examples (also as `docs/uebersicht.pdf`), made with
+- `docs/index.html`: overview of the most promising examples (until 14.11.2026 also as a PDF), made with
   `make_overview.py`.
 - `docs/review/`: all objects, with search and filters, plus `vmz_suggestions.xlsx` (one row per object for
   curators) and `vmz_results.json`.
@@ -417,9 +431,17 @@ PRM 1,475, Rietberg 893).
   ASCII (Windows does not always unpack other names correctly; five thumbnails of «Stü …» objects were
   renamed for this). The ZIP is attached to the GitHub release `offline-2026-11-14`; the overview and this
   README link the latest release's ZIP.
-- The PDF names the online address.
 - The Rietberg licence is corrected to CC BY-SA (Open Data Zürich). The harvester had recorded CC BY, and
   this was in `vmz_results.json`; the pages already said CC BY-SA.
+
+### MKB list and switch, no PDF (14.11.2026)
+
+- A switch «VMZ | MKB» in the sticky bar of both lists leads to the new MKB list with all 7,310 MKB objects
+  (see «Current state»). `suggest_mkb.py` shares the list CSS (`LIST_CSS`) and the switch (`switch_html`) with
+  `suggest_vmz.py`; it takes about 70 s at half GPU load.
+- The PDF export of the overview was removed, online and in the ZIP. `make_overview.py` no longer prints a PDF.
+- The ZIP grows to 69 MB (18,586 files). `make_offline_zip.py` now also checks the image paths and anchors inside
+  the data embedded in the MKB list.
 
 ## Run
 
@@ -450,10 +472,11 @@ venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_
   --pdf VMZ_objects-with-questionmark.pdf --pdf VMZ_objects-with-quotation-marks.pdf --out data   # ~30 s
 venv/bin/python ingest_vmz.py --xlsx VMZ_Sammlungsobjekte_20261112_fuerGlamhack_.xlsx --out data --images data/VMZ_figure --flag Figur
 
-# 4. embeddings (incremental), pages, PDF, offline ZIP
+# 4. embeddings (incremental), pages, offline ZIP
 GPU_SHARE=0.5 venv/bin/python embed.py --data data --queries queries --models siglip2,dinov2,siglip2_so400m
 GPU_SHARE=0.5 venv/bin/python suggest_vmz.py --data data --public --out docs/review --text-model siglip2_so400m   # ~1.5 min
-venv/bin/python make_overview.py --data data --results docs/review/vmz_results.json --out docs --pdf   # PDF: headless Chrome
+GPU_SHARE=0.5 venv/bin/python suggest_mkb.py --data data --out docs/review --text-model siglip2_so400m   # MKB list
+venv/bin/python make_overview.py --data data --results docs/review/vmz_results.json --out docs
 venv/bin/python make_offline_zip.py             # -> dist/glamhack26-similar-search-offline.zip (gitignored; upload to a release)
 
 # 5. comparisons
@@ -485,8 +508,9 @@ CPU threads). It's quieter and takes about twice as long. `embed.py` only comput
 - `harvest_mkb_online.py`, `harvest_prm.py` – MKB (via PARC) and Pitt Rivers Museum harvests (staged).
 - `merge_staged.py` – merges staged harvests; `compare_models.py` – compares the image models.
 - `compare_refs.py` – compares two reference sets on the VMZ objects (coverage and name confirmation).
-- `make_overview.py` – the overview page for the challenge owners (`docs/index.html`, with `--pdf` also
-  `docs/uebersicht.pdf`).
+- `suggest_mkb.py` – the MKB list (`docs/review/mkb.html`): all MKB objects as starting point, neighbours in
+  the other collections including the VMZ objects, terms from the VMZ vocabulary.
+- `make_overview.py` – the overview page for the challenge owners (`docs/index.html`).
 - `make_offline_zip.py` – the offline copy of `docs/` as a ZIP, with link check.
 
 The query images `q_uzh25744_figur_auf_sockel.png` and `q_uzh00001_bambusgitarre.png` are crops from

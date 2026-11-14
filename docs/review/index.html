@@ -27,6 +27,9 @@ color:var(--mut);background:var(--chip);border-radius:4px;padding:6px}
 nav.top{font-size:13px;margin:4px 0 0} nav.top a{color:var(--mut);text-decoration:none} nav.top a:hover{color:var(--fg)}
 .bar a.home{white-space:nowrap;font-weight:600;text-decoration:none;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card)}
 @media (max-width:600px){.q{width:100%}}
+.switch{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card)}
+.switch a{padding:6px 10px;text-decoration:none;font-weight:600;white-space:nowrap;color:var(--fg)}
+.switch a[aria-current="page"]{background:var(--fg);color:var(--bg)}
 </style></head><body>
 <nav class="top"><a href="../index.html">← Zur Übersicht</a></nav>
 <h1>Namensvorschläge für VMZ-Objekte mit unsicheren oder generischen Namen (PoC)</h1>
@@ -51,7 +54,7 @@ Zahl auf den Karten = Bildähnlichkeit (SigLIP 2, höher = ähnlicher). Ausgeble
 die bei 10 oder mehr Fotos unter den Top 5 wären («Hubs», z. B. kleine Glasfragmente).
 Vorschläge sind Hinweise – entscheiden muss die Fachperson.
 Fotos der VMZ-Objekte: © Völkerkundemuseum der Universität Zürich. Vergleichsbilder: Cleveland Museum of Art und Smithsonian (CC0), Museum Rietberg (CC BY-SA), via museum-digital: Ethnologisches Museum, Staatliche Museen zu Berlin (CC BY-NC-SA) und Übersee-Museum Bremen (CC BY-SA), Mapping Philippine Material Culture (© die besitzenden Museen) – Miniaturen nur zum Vergleich, mit Link zur Quelle. Museum der Kulturen Basel (auch via PARC, Universität Basel): Bilder mit Einverständnis des MKB, Quellennachweis «Museum der Kulturen Basel». Pitt Rivers Museum: nur Name und Link, die Bilder werden aus Rechtegründen nicht gezeigt. Texttreffer: Museum der Kulturen Basel, Sammlung Europa (data.bs.ch, CC BY 4.0). Katalogdaten ohne Sammler, Herkunft, Eingangsbuch und interne Notizen; Beschreibungen nur für Erwerbungen vor 1980 und ohne Sätze zu Personen, Erwerb oder Wert.</small></p></div>
-<div class="bar"><a class="home" href="../index.html" title="Zur Übersicht">← Übersicht</a><input id="q" type="search" placeholder="Suche: Inventarnummer, Name, Begriff, Region …" aria-label="Suche">
+<div class="bar"><a class="home" href="../index.html" title="Zur Übersicht">← Übersicht</a><span class="switch" role="group" aria-label="Ausgangssammlung"><a href="index.html" title="VMZ-Objekte mit «?», Anführungszeichen oder nur «Figur»" aria-current="page">VMZ · 1019</a><a href="mkb.html" title="alle Objekte des Museums der Kulturen Basel mit Foto">MKB · 7310</a></span><input id="q" type="search" placeholder="Suche: Inventarnummer, Name, Begriff, Region …" aria-label="Suche">
 <select id="flag" aria-label="Markierung"><option value="">alle Gruppen</option><option value="?">nur «?»</option><option value="«»">nur Anführungszeichen</option><option value="Figur">nur «Figur» (generischer Name)</option></select>
 <select id="hyp" aria-label="Hypothese"><option value="">alle Hypothesen</option><option value="sup">«?»-Hypothese gestützt</option><option value="pos">«?»-Hypothese möglich</option><option value="no">«?»-Hypothese nicht gestützt</option></select>
 <small id="count"></small></div>

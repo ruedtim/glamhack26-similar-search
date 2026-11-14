@@ -48,6 +48,36 @@ RIGHTS_PUBLIC = ("Fotos der VMZ-Objekte: © Völkerkundemuseum der Universität 
                  "Texttreffer: Museum der Kulturen Basel, Sammlung Europa (data.bs.ch, CC BY 4.0).")
 CATALOG_PUBLIC = ("Katalogdaten ohne Sammler, Herkunft, Eingangsbuch und interne Notizen; Beschreibungen nur für "
                   "Erwerbungen vor 1980 und ohne Sätze zu Personen, Erwerb oder Wert.")
+LIST_CSS = """:root{--bg:#fafaf8;--fg:#1d1d1b;--mut:#6b6b66;--card:#fff;--line:#e3e2dc;--chip:#f0eee6;--sup:#d7ecd9;--pos:#f3ead0;--no:#f0eee6;--warn:#9a5b00;--acc2:#2f6b3a}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#191917;--fg:#ecebe6;--mut:#a3a29b;--card:#242422;--line:#3a3935;--chip:#33322e;--sup:#24402a;--pos:#463d22;--no:#33322e;--warn:#e0a24a;--acc2:#8fd19e}}
+body{background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,sans-serif;margin:0 auto;max-width:1240px;padding:16px}
+h1{font-size:24px;margin:8px 0} h3{font-size:13px;color:var(--mut);margin:12px 0 6px;font-weight:600}
+.bar{position:sticky;top:0;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center;z-index:2}
+.bar input,.bar select{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg)}
+.bar input{flex:1;min-width:200px}
+section{border-bottom:1px solid var(--line);padding:14px 0}
+section{scroll-margin-top:64px} section:target{background:var(--chip)}   /* links from the overview land below the sticky bar */
+.row{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap} .q{width:260px;display:flex;flex-direction:column;gap:4px}
+.sug{flex:1;min-width:280px} .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:3px}
+.c img,.q img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:4px}
+.chip{display:inline-block;background:var(--chip);border-radius:999px;padding:2px 10px;margin:0 6px 6px 0;font-size:13px}
+.chip.sup{background:var(--sup)} .chip.pos{background:var(--pos)} .chip i{color:var(--mut);font-style:normal}
+b{font-size:13px} .name{font-size:15px} small{font-size:11px;color:var(--mut)} .k{font-weight:600} .log{font-style:italic}
+.warn{color:var(--warn)} a{color:inherit} .lead{max-width:900px} .lead small{font-size:13px}
+details.cat{font-size:11px;color:var(--mut)} details.cat summary{cursor:pointer;font-weight:600;margin:4px 0}
+details.cat dl{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;margin:4px 0} details.cat dt{font-weight:600}
+details.cat dd{margin:0;color:var(--fg);white-space:pre-line}
+.c small.geo{color:var(--acc2);font-weight:600}
+.noimg{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;
+color:var(--mut);background:var(--chip);border-radius:4px;padding:6px}
+nav.top{font-size:13px;margin:4px 0 0} nav.top a{color:var(--mut);text-decoration:none} nav.top a:hover{color:var(--fg)}
+.bar a.home{white-space:nowrap;font-weight:600;text-decoration:none;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+@media (max-width:600px){.q{width:100%}}
+.switch{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card)}
+.switch a{padding:6px 10px;text-decoration:none;font-weight:600;white-space:nowrap;color:var(--fg)}
+.switch a[aria-current="page"]{background:var(--fg);color:var(--bg)}
+"""
 MT_MODEL = "Helsinki-NLP/opus-mt-de-en"
 MT_FRAME = "Ethnografische Sammlung: Maske, Trommel, {}"   # context makes single-word MT much better
 
@@ -57,6 +87,15 @@ def fname(s):
     Windows too, which does not always decode non-ASCII names in ZIPs. Same as make_overview.fname."""
     s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode()
     return re.sub(r"[^\w.-]+", "_", s, flags=re.ASCII)
+
+
+def switch_html(current, n_vmz, n_mkb):
+    """Segmented switch between the VMZ list (index.html) and the MKB list (mkb.html), both in the same folder."""
+    items = [("vmz", "index.html", f"VMZ · {n_vmz}", "VMZ-Objekte mit «?», Anführungszeichen oder nur «Figur»"),
+             ("mkb", "mkb.html", f"MKB · {n_mkb}", "alle Objekte des Museums der Kulturen Basel mit Foto")]
+    links = "".join(f'<a href="{h}" title="{t}"' + (' aria-current="page"' if k == current else "") + f">{lab}</a>"
+                    for k, h, lab, t in items)
+    return f'<span class="switch" role="group" aria-label="Ausgangssammlung">{links}</span>'
 
 
 def translate(terms, cache_path):
@@ -261,6 +300,8 @@ def main():
                     help="published variant: no accession register, collector, provenance; filtered descriptions")
     ap.add_argument("--home", default="../index.html",
                     help="link back to the overview page, relative to OUT ('' = no link)")
+    ap.add_argument("--mkb-page", default="mkb.html",
+                    help="the MKB list next to OUT/index.html (suggest_mkb.py) for the switch ('' = no switch)")
     a = ap.parse_args()
     data, out = Path(a.data), Path(a.out)
     (out / "img").mkdir(parents=True, exist_ok=True)
@@ -584,36 +625,12 @@ def write_outputs(a, out, recs, data, rows, stats, n, ref, src, de_vocab, top1_s
     home = esc(a.home) if a.home else ""
     home_nav = f'<nav class="top"><a href="{home}">← Zur Übersicht</a></nav>' if home else ""
     home_bar = f'<a class="home" href="{home}" title="Zur Übersicht">← Übersicht</a>' if home else ""
+    n_mkb = int((src == "mkb").sum())
+    switch = switch_html("vmz", n, n_mkb) if a.mkb_page and n_mkb else ""
     page = f"""<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>VMZ Namensvorschläge</title>
 <style>
-:root{{--bg:#fafaf8;--fg:#1d1d1b;--mut:#6b6b66;--card:#fff;--line:#e3e2dc;--chip:#f0eee6;--sup:#d7ecd9;--pos:#f3ead0;--no:#f0eee6;--warn:#9a5b00;--acc2:#2f6b3a}}
-@media (prefers-color-scheme: dark){{:root:not([data-theme="light"]){{--bg:#191917;--fg:#ecebe6;--mut:#a3a29b;--card:#242422;--line:#3a3935;--chip:#33322e;--sup:#24402a;--pos:#463d22;--no:#33322e;--warn:#e0a24a;--acc2:#8fd19e}}}}
-body{{background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,sans-serif;margin:0 auto;max-width:1240px;padding:16px}}
-h1{{font-size:24px;margin:8px 0}} h3{{font-size:13px;color:var(--mut);margin:12px 0 6px;font-weight:600}}
-.bar{{position:sticky;top:0;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center;z-index:2}}
-.bar input,.bar select{{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg)}}
-.bar input{{flex:1;min-width:200px}}
-section{{border-bottom:1px solid var(--line);padding:14px 0}}
-section{{scroll-margin-top:64px}} section:target{{background:var(--chip)}}   /* links from the overview land below the sticky bar */
-.row{{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}} .q{{width:260px;display:flex;flex-direction:column;gap:4px}}
-.sug{{flex:1;min-width:280px}} .grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}}
-.c{{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:3px}}
-.c img,.q img{{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:4px}}
-.chip{{display:inline-block;background:var(--chip);border-radius:999px;padding:2px 10px;margin:0 6px 6px 0;font-size:13px}}
-.chip.sup{{background:var(--sup)}} .chip.pos{{background:var(--pos)}} .chip i{{color:var(--mut);font-style:normal}}
-b{{font-size:13px}} .name{{font-size:15px}} small{{font-size:11px;color:var(--mut)}} .k{{font-weight:600}} .log{{font-style:italic}}
-.warn{{color:var(--warn)}} a{{color:inherit}} .lead{{max-width:900px}} .lead small{{font-size:13px}}
-details.cat{{font-size:11px;color:var(--mut)}} details.cat summary{{cursor:pointer;font-weight:600;margin:4px 0}}
-details.cat dl{{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;margin:4px 0}} details.cat dt{{font-weight:600}}
-details.cat dd{{margin:0;color:var(--fg);white-space:pre-line}}
-.c small.geo{{color:var(--acc2);font-weight:600}}
-.noimg{{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;
-color:var(--mut);background:var(--chip);border-radius:4px;padding:6px}}
-nav.top{{font-size:13px;margin:4px 0 0}} nav.top a{{color:var(--mut);text-decoration:none}} nav.top a:hover{{color:var(--fg)}}
-.bar a.home{{white-space:nowrap;font-weight:600;text-decoration:none;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card)}}
-@media (max-width:600px){{.q{{width:100%}}}}
-</style></head><body>
+{LIST_CSS}</style></head><body>
 {home_nav}
 <h1>Namensvorschläge für VMZ-Objekte mit unsicheren oder generischen Namen (PoC)</h1>
 <div class="lead"><p>{n} Objekte aus der GLAMhack-Stichprobe des Völkerkundemuseums der Universität Zürich:
@@ -637,7 +654,7 @@ Zahl auf den Karten = Bildähnlichkeit (SigLIP 2, höher = ähnlicher). Ausgeble
 die bei {stats['hub_max']} oder mehr Fotos unter den Top 5 wären («Hubs», z. B. kleine Glasfragmente).
 Vorschläge sind Hinweise – entscheiden muss die Fachperson.
 {RIGHTS_PUBLIC + ' ' + CATALOG_PUBLIC if a.public else 'Bilder und Katalogdaten: intern, nicht veröffentlichen.'}</small></p></div>
-<div class="bar">{home_bar}<input id="q" type="search" placeholder="Suche: Inventarnummer, Name, Begriff, Region …" aria-label="Suche">
+<div class="bar">{home_bar}{switch}<input id="q" type="search" placeholder="Suche: Inventarnummer, Name, Begriff, Region …" aria-label="Suche">
 <select id="flag" aria-label="Markierung"><option value="">alle Gruppen</option><option value="?">nur «?»</option><option value="«»">nur Anführungszeichen</option><option value="Figur">nur «Figur» (generischer Name)</option></select>
 <select id="hyp" aria-label="Hypothese"><option value="">alle Hypothesen</option><option value="sup">«?»-Hypothese gestützt</option><option value="pos">«?»-Hypothese möglich</option><option value="no">«?»-Hypothese nicht gestützt</option></select>
 <small id="count"></small></div>
